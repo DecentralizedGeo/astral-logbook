@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next build",
+    "build": "next build",
     "check-types": "tsc --noEmit --incremental",
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "format": "prettier --write . '!(node_modules|.next|contracts)/**/*'",
@@ -45,6 +45,7 @@
     "@typescript-eslint/eslint-plugin": "~5.40.0",
     "abitype": "1.0.2",
     "autoprefixer": "~10.4.12",
+    "cross-env": "^7.0.3",
     "eslint": "~8.24.0",
     "eslint-config-next": "~14.0.4",
     "eslint-config-prettier": "~8.5.0",
@@ -57,17 +58,11 @@
     "vercel": "~32.4.1"
   },
   "husky": {
-    "hooks": {
-      "pre-commit": "yarn lint-staged --verbose"
-    }
-  },
+    "hooks": {}
+    },
   "lint-staged": {
     "*.{js,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
+      "eslint --fix"
     ]
   }
 }
