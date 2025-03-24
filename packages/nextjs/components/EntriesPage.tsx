@@ -5,11 +5,11 @@
  * Provides filtering and interactive features
  */
 
-import React from "react";
-import Link from "next/link";
+import React, { useCallback, useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import EntriesMap from './EntriesMap';
+import EntriesFilter, { FilterOptions } from './EntriesFilter';
 import easConfig from "~~/EAS.config";
 import { useAccount } from 'wagmi';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
@@ -39,6 +39,27 @@ const GET_ATTESTATIONS = gql`
   }
 `;
 
+// Debounce function to limit the rate of function calls
+const debounce = <T extends (...args: any[]) => void>(
+  fn: T,
+  delay: number
+): T => {
+  let timeoutId: NodeJS.Timeout;
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  }) as T;
+};
+
+// Helper function to check if entry passes time of day filter
+const getTimeOfDay = (timestamp: string): 'morning' | 'afternoon' | 'evening' | 'night' => {
+  const hours = new Date(timestamp).getHours();
+  if (hours >= 6 && hours < 12) return 'morning';
+  if (hours >= 12 && hours < 18) return 'afternoon';
+  if (hours >= 18 && hours < 24) return 'evening';
+  return 'night';
+};
+
 // Fetching, processing, and displaying attestation data on a map
 const EntriesPage = () => {
   const router = useRouter();
@@ -46,14 +67,26 @@ const EntriesPage = () => {
   const { address } = useAccount();
   
   // Component state
-  const [entries, setEntries] = React.useState<Entry[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [hoveredEntry, setHoveredEntry] = React.useState<Entry | null>(null);
-  const [hoverPosition, setHoverPosition] = React.useState<{ x: number, y: number } | null>(null);
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hoveredEntry, setHoveredEntry] = useState<Entry | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ x: number, y: number } | null>(null);
+  const navigationLock = useRef(false);
+  const [filters, setFilters] = useState<FilterOptions>({
+    dateRange: { from: null, to: null },
+    keywords: '',
+    hasMedia: null,
+    timeOfDay: {
+      morning: false,
+      afternoon: false,
+      evening: false,
+      night: false
+    }
+  });
 
   // Fetches and processes attestation entries from the blockchain
-  const fetchEntries = React.useCallback(async () => {
+  const fetchEntries = useCallback(async () => {
     if (!address) {
       setIsLoading(false);
       return;
@@ -112,113 +145,168 @@ const EntriesPage = () => {
     }
   }, [address, targetNetwork.id]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchEntries();
   }, [fetchEntries]);
 
+  // Apply filters to entries
+  const filteredEntries = useMemo(() => {
+    return entries.filter(entry => {
+      // Date range filter
+      if (filters.dateRange.from && new Date(entry.timestamp) < filters.dateRange.from) {
+        return false;
+      }
+      if (filters.dateRange.to) {
+        const endDate = new Date(filters.dateRange.to);
+        endDate.setDate(endDate.getDate() + 1);
+        if (new Date(entry.timestamp) > endDate) {
+          return false;
+        }
+      }
+
+      // Keywords filter
+      if (filters.keywords && !entry.memo.toLowerCase().includes(filters.keywords.toLowerCase())) {
+        return false;
+      }
+
+      // Media filter
+      if (filters.hasMedia === true && !entry.media) {
+        return false;
+      }
+      if (filters.hasMedia === false && entry.media) {
+        return false;
+      }
+
+      // Time of day filter
+      const entryTimeOfDay = getTimeOfDay(entry.timestamp);
+      const timeFiltersActive = Object.values(filters.timeOfDay).some(v => v);
+      
+      if (timeFiltersActive && !filters.timeOfDay[entryTimeOfDay]) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [entries, filters]);
+
+  const handleFilterChange = useCallback((newFilters: FilterOptions) => {
+    setFilters(newFilters);
+  }, []);
+
+  const handleEntryClick = useCallback(
+    debounce((entryUid: string) => {
+      if (navigationLock.current) return;
+      navigationLock.current = true;
+      router.push(`/attestation/uid/${entryUid}`);
+    }, 300),
+    [router]
+  );
+
+  useEffect(() => {
+    return () => {
+      navigationLock.current = false;
+    };
+  }, []);
+
+  // Handle marker hover to show entry details
+  const handleMarkerHover = useCallback((entry: Entry, event: MouseEvent) => {
+    console.log('Hover entry:', entry);
+    setHoveredEntry({
+      id: entry.id,
+      coordinates: entry.coordinates,
+      timestamp: entry.timestamp,
+      memo: entry.memo,
+      media: entry.media,
+      uid: entry.uid
+    });
+    setHoverPosition({
+      x: event.clientX,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  // Clear both hover states when leaving a marker
+  const handleMarkerLeave = useCallback(() => {
+    // Ensure both states are cleared immediately
+    requestAnimationFrame(() => {
+      setHoveredEntry(null);
+      setHoverPosition(null);
+    });
+  }, []);
+
   return (
     <main className="p-5 border border-black bg-[#f0f0f0] min-h-screen flex flex-col lg:flex-row">
-      <div className="lg:w-3/4 p-4">
-        <Link href="/" className="text-[#009900] hover:underline">← Back to Home</Link>
-        
-        <div className="mt-4">
-          {/* Header with entry count and refresh button */}
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-[#333] text-2xl font-bold">Your Past Entries {entries.length > 0 && `(${entries.length})`}</h1>
-            <button onClick={fetchEntries} className="text-[#009900] hover:underline">Refresh →</button>
+      <div className="relative flex-1">
+        <EntriesMap
+          entries={filteredEntries}
+          onMarkerClick={(entry) => handleEntryClick(entry.uid)}
+          onMarkerHover={handleMarkerHover}
+          onMarkerLeave={handleMarkerLeave}
+        />
+        {hoveredEntry && hoverPosition && (
+          <div
+            className="absolute z-10 p-3 mb-3 cursor-pointer bg-[#009900] text-white hover:bg-[#007700] transition-colors duration-200 rounded-lg break-words"
+            style={{
+              left: hoverPosition.x,
+              top: hoverPosition.y,
+              transform: 'translate(-50%, -100%)',
+              minWidth: '200px',
+              maxWidth: '300px'
+            }}
+          >
+            <div className="text-sm mb-1">
+              {new Date(hoveredEntry.timestamp).toLocaleString()}
+            </div>
+            <div className="text-base">
+              {hoveredEntry.memo}
+            </div>
+            {hoveredEntry.media && (
+              <div className="mt-1 text-sm">
+                📎 Media attached
+              </div>
+            )}
           </div>
-
-          {/* Conditional rendering based on loading/error state */}
-          {error ? (
-            <div className="text-red-500 text-center py-8">{error}</div>
-          ) : isLoading ? (
-            <div className="text-center py-12"><p className="text-[#333]">Loading your entries...</p></div>
-          ) : entries.length > 0 ? (
-            <div className="h-[75vh] w-full relative">
-              <EntriesMap 
-                entries={entries} 
-                onMarkerClick={(entry) => router.push(`/attestation/uid/${entry.uid}`)} 
-                onMarkerHover={(entry, event) => {
-                  setHoveredEntry(entry);
-                  setHoverPosition({ x: event.clientX, y: event.clientY });
-                }}
-                onMarkerLeave={() => {
-                  setHoveredEntry(null);
-                  setHoverPosition(null);
-                }}
-              />
-              {hoveredEntry && hoverPosition && (
-                <div 
-                  className="absolute bg-[#009900] text-white p-3 rounded-lg shadow-xl border border-[#007700]"
-                  style={{ 
-                    top: hoverPosition.y - 80,
-                    left: hoverPosition.x - 100,
-                    zIndex: 1000,
-                    minWidth: '200px',
-                    transform: 'translate(-5%, -100%)'
-                  }}
-                >
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium border-b border-[#007700] pb-1">
-                      <span className="opacity-80">Time:</span>{' '}
-                      {new Date(hoveredEntry.timestamp).toLocaleString(undefined, {
-                        weekday: 'short',
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                    {hoveredEntry.media && (
-                      <p className="text-sm">
-                        <span className="opacity-80">Media:</span>{' '}
-                        <span className="font-medium">{hoveredEntry.media}</span>
-                      </p>
-                    )}
-                    {hoveredEntry.memo && hoveredEntry.memo !== 'No memo' && (
-                      <p className="text-sm">
-                        <span className="opacity-80">Memo:</span>{' '}
-                        <span className="font-medium">{hoveredEntry.memo}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-[#333] mb-6">No entries found.</p>
-              <Link href="/register" className="text-[#009900] hover:underline">Create your first entry →</Link>
-            </div>
-          )}
-        </div>
+        )}
       </div>
       <div className="lg:w-1/3 p-4 border-t lg:border-t-0 lg:border-l border-black overflow-y-auto max-h-screen">
         <h2 className="text-[#009900] mb-4 text-xl font-semibold">Historical Locations</h2>
-        {[...entries]
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          .map(entry => (
-          <div 
-            key={entry.id} 
-            className="p-3 mb-3 cursor-pointer bg-[#009900] text-white hover:bg-[#007700] transition-colors duration-200 rounded-lg break-words" 
-            onClick={() => router.push(`/attestation/uid/${entry.uid}`)}
-          >
-            <p className="text-sm mb-1 border-b border-[#007700] pb-1">
-              <strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}
-            </p>
-            {entry.media && (
-              <p className="text-sm mb-1">
-                <strong>Media:</strong> {entry.media}
-              </p>
-            )}
-            {entry.memo && entry.memo !== 'No memo' && (
-              <p className="text-sm">
-                <strong>Memo:</strong> {entry.memo}
-              </p>
-            )}
+        
+        {/* Filter Component */}
+        <EntriesFilter 
+          onFilterChange={handleFilterChange}
+          entriesCount={entries.length}
+          filteredCount={filteredEntries.length}
+        />
+        
+        {filteredEntries.length === 0 ? (
+          <div className="p-4 bg-gray-100 rounded text-center text-gray-500">
+            No entries match your filters
           </div>
-        ))}
+        ) : (
+          [...filteredEntries]
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .map(entry => (
+            <div 
+              key={entry.id} 
+              className="p-3 mb-3 cursor-pointer bg-[#009900] text-white hover:bg-[#007700] transition-colors duration-200 rounded-lg break-words" 
+              onClick={() => handleEntryClick(entry.uid)}
+            >
+              <p className="text-sm mb-1 border-b border-[#007700] pb-1">
+                <strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}
+              </p>
+              {entry.media && (
+                <p className="text-sm mb-1">
+                  <strong>Media:</strong> {entry.media}
+                </p>
+              )}
+              {entry.memo && entry.memo !== 'No memo' && (
+                <p className="text-sm">
+                  <strong>Memo:</strong> {entry.memo}
+                </p>
+              )}
+            </div>
+          ))
+        )}
       </div>
     </main>
   );

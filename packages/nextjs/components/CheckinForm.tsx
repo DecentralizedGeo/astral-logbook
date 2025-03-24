@@ -101,14 +101,6 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
         throw new Error("EAS is not ready");
       }
 
-      // Upload memo if provided
-      let memoCid = "";
-      if (formValues.data) {
-        console.log("Uploading memo...");
-        memoCid = await uploadText(formValues.data);
-        console.log("Completed uploading memo.");
-      }
-
       // Upload file if provided
       console.log("Uploading file...");
       const fileInput = (event.target as HTMLFormElement).querySelector('input[type="file"]') as HTMLInputElement;
@@ -118,16 +110,19 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
       // Create and submit attestation
       console.log("Creating attestation...");
       const schemaUID = getSchemaUID();
-      const encodedData = new SchemaEncoder(easConfig.schema.rawString).encodeData([
-        { name: "eventTimestamp", value: formValues.eventTimestamp, type: "uint256" },
-        { name: "srs", value: "EPSG:4326", type: "string" },
-        { name: "locationType", value: "DecimalDegrees<string>", type: "string" },
-        { name: "location", value: `${formValues.longitude}, ${formValues.latitude}`, type: "string" },
-        { name: "recipeType", value: ["text/plain"], type: "string[]" },
-        { name: "recipePayload", value: [ethers.toUtf8Bytes("")], type: "bytes[]" },
-        { name: "mediaType", value: fileType ? [fileType] : [""], type: "string[]" },
-        { name: "mediaData", value: [fileCid], type: "string[]" },
-        { name: "memo", value: memoCid, type: "string" }
+      // Make sure the schema string is valid
+      const schemaString = easConfig.schema.rawString || 'uint256 eventTimestamp, string srs, string locationType, string location, string[] recipeType, bytes[] recipePayload, string[] mediaType, string[] mediaData, string memo';
+      
+      const encodedData = new SchemaEncoder(schemaString).encodeData([
+        { name: 'eventTimestamp', value: formValues.eventTimestamp, type: 'uint256' },
+        { name: 'srs', value: 'EPSG:4326', type: 'string' },
+        { name: 'locationType', value: 'DecimalDegrees<string>', type: 'string' },
+        { name: 'location', value: `${formValues.longitude || '0'}, ${formValues.latitude || '0'}`, type: 'string' },
+        { name: 'recipeType', value: ['text/plain'], type: 'string[]' },
+        { name: 'recipePayload', value: [ethers.toUtf8Bytes('empty')], type: 'bytes[]' },
+        { name: 'mediaType', value: fileType ? [fileType] : ['text/plain'], type: 'string[]' },
+        { name: 'mediaData', value: [fileCid || ''], type: 'string[]' },
+        { name: 'memo', value: formValues.data || '', type: 'string' }
       ]);
 
       const tx = await eas.attest({
@@ -195,22 +190,31 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
         {/* Memo input */}
         <label className="flex flex-row items-center gap-2">
           <DocumentTextIcon className="h-5 w-5 text-primary" />
-          <input
-            type="text"
-            name="data"
-            value={formValues.data}
-            onChange={handleInputChange}
-            placeholder="Memo (optional)"
-            className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
-          />
+          <div className="w-full">
+            <span className="text-sm text-gray-500 mb-1 block">Memo (optional)</span>
+            <input
+              type="text"
+              name="data"
+              value={formValues.data}
+              onChange={handleInputChange}
+              placeholder="No memo provided."
+              className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
+            />
+          </div>
         </label>
 
         {/* File upload */}
-        <input
-          type="file"
-          className="file-input file-input-bordered w-full"
-          accept="image/*"
-        />
+        <label className="flex flex-row items-center gap-2">
+          <DocumentTextIcon className="h-5 w-5 text-primary" />
+          <div className="w-full">
+            <span className="text-sm text-gray-500 mb-1 block">Image (optional)</span>
+            <input
+              type="file"
+              className="file-input file-input-bordered w-full"
+              accept="image/*"
+            />
+          </div>
+        </label>
 
         {error && <p className="text-error text-sm">{error}</p>}
 
@@ -234,16 +238,6 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
       </form>
     </div>
   );
-};
-
-// Uploads text content to Web3.Storage
-async function uploadText(text: string): Promise<string> {
-  const formData = new FormData();
-  formData.append('text', text);
-  const response = await fetch('/api/files', { method: 'POST', body: formData });
-  if (!response.ok) throw new Error('Failed to upload memo');
-  const data = await response.json();
-  return data.cid;
 }
 
 // Handles file upload to Web3.Storage

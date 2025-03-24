@@ -19,17 +19,17 @@ const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/gif"];
 
 // Initializes and configures Web3.Storage client
 async function getW3Client() {
-  if (!process.env.WEB3STORAGE_KEY || !process.env.WEB3STORAGE_PROOF) {
+  if (!process.env.NEXT_PUBLIC_WEB3STORAGE_KEY || !process.env.NEXT_PUBLIC_WEB3STORAGE_PROOF) {
     throw new Error('Web3Storage credentials not configured');
   }
 
   // Initialize client with private key
-  const principal = Signer.parse(process.env.WEB3STORAGE_KEY);
+  const principal = Signer.parse(process.env.NEXT_PUBLIC_WEB3STORAGE_KEY);
   const store = new StoreMemory();
   const client = await Client.create({ principal, store });
 
   // Setup space delegation
-  const proof = await Proof.parse(process.env.WEB3STORAGE_PROOF);
+  const proof = await Proof.parse(process.env.NEXT_PUBLIC_WEB3STORAGE_PROOF);
   const space = await client.addSpace(proof);
   await client.setCurrentSpace(space.did());
 
