@@ -7,7 +7,7 @@
 - **Blockchain**: Ethereum for on-chain storage of location claims
 - **Decentralized Storage**: IPFS and Filecoin backup via Web3.Storage for file attachments
 - **Package Management**: Yarn
-- **Base Framework**: Built on the [Astral Logbook](https://github.com/DecentralizedGeo/astral-logbook) architecture
+- **Base Framework**: Built on the <a href="https://github.com/DecentralizedGeo/astral-logbook" target="_blank">Astral Logbook</a> architecture
 
 ## Project Structure
 - `/packages/nextjs/` - Frontend application code

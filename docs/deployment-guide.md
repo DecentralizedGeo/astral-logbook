@@ -36,24 +36,24 @@ This guide provides detailed instructions for deploying an instance of the decen
 ### 3. How to get the required tokens:
 
 #### Mapbox Access Token:
-1. Create an account or sign in at [Mapbox](https://account.mapbox.com/auth/signup/)
+1. Create an account or sign in at <a href="https://account.mapbox.com/auth/signup/" target="_blank">Mapbox</a>
 2. Navigate to your Account → Access Tokens
 3. Create a new token with the default public scopes
 4. Copy the token to your `.env.local` file
 
 #### Web3.Storage Tokens:
-1. Create an account or sign in at [Web3.Storage](https://console.web3.storage/)
-2. Create a space ([instructions](https://docs.storacha.network/how-to/ci/#create-a-space))
-3. Create a signing key ([instructions](https://docs.storacha.network/how-to/ci/#create-a-signing-key)) - this will be your `NEXT_PUBLIC_WEB3STORAGE_TOKEN`
-4. Create a proof ([instructions](https://docs.storacha.network/how-to/ci/#create-a-proof)) - this will be your `NEXT_PUBLIC_WEB3STORAGE_PROOF`
+1. Create an account or sign in at <a href="https://console.web3.storage/" target="_blank">Web3.Storage</a>
+2. Create a space (<a href="https://docs.storacha.network/how-to/ci/#create-a-space" target="_blank">instructions</a>)
+3. Create a signing key (<a href="https://docs.storacha.network/how-to/ci/#create-a-signing-key" target="_blank">instructions</a>) - this will be your `NEXT_PUBLIC_WEB3STORAGE_TOKEN`
+4. Create a proof (<a href="https://docs.storacha.network/how-to/ci/#create-a-proof" target="_blank">instructions</a>) - this will be your `NEXT_PUBLIC_WEB3STORAGE_PROOF`
 
 ## IPFS Setup
 
 ### 1. Install and Configure IPFS
 
 - Install IPFS Desktop or Command-line:
-  - Desktop: Download from [IPFS Desktop](https://docs.ipfs.tech/install/ipfs-desktop/)
-  - Command-line: Follow the [command-line installation guide](https://docs.ipfs.tech/install/command-line/)
+  - Desktop: Download from <a href="https://docs.ipfs.tech/install/ipfs-desktop/" target="_blank">IPFS Desktop</a>
+  - Command-line: Follow the <a href="https://docs.ipfs.tech/install/command-line/" target="_blank">command-line installation guide</a>
 
 - Initialize IPFS (if using command-line):
   ```
