@@ -18,7 +18,7 @@ This guide provides detailed instructions for deploying an instance of the decen
 
 - Install dependencies:  
   ```
-  yarn install
+  yarn install --frozen-lockfile
   ```
   This installs all required dependencies for the project.
 
