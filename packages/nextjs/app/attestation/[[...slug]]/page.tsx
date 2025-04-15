@@ -42,23 +42,38 @@ const AttestationPage: NextPage = () => {
 
   // Fetch and process attestation data
   useEffect(() => {
-    if (!eas) return;
+    if (!eas?.contract?.runner) return;
 
     const fetchAttestation = async () => {
       try {
+        if (!attestationUid) return;
+        
+        // Check if EAS is properly initialized with a provider
+        if (!eas.contract?.runner) {
+          console.error("EAS contract runner not properly initialized");
+          return;
+        }
+        
         // Fetch raw attestation data
-        const [
-          attestationId,
-          schemaUID,
+        const attestation = await eas.getAttestation(attestationUid);
+        if (!attestation) {
+          console.error("Attestation not found");
+          return;
+        }
+        
+        const {
+          uid: attestationId,
+          schema: schemaUID,
           expirationTime,
           revocable,
           refUID,
-          initData,
+          data: dataField,
           recipient,
           attester,
-          completed,
-          dataField,
-        ] = await eas.getAttestation(attestationUid) as unknown as any[];
+        } = attestation;
+        
+        const completed = true; 
+        const initData = "0x"; 
 
         // Decode attestation data using schema
         const decodedData = new SchemaEncoder(easConfig.schema.rawString)
@@ -87,7 +102,7 @@ const AttestationPage: NextPage = () => {
     };
 
     fetchAttestation();
-  }, [eas, attestationUid]);
+  }, [eas?.contract?.runner, attestationUid]);
 
   // Validate media data presence and format
   const mediaData = attestationData?.mediaData.value.value as string[];
@@ -158,18 +173,17 @@ const AttestationPage: NextPage = () => {
                     </td>
                   </tr>
 
-                  {/* Memo */}
-                  <tr className="border-gray-200">
-                    <td>
-                      <DocumentTextIcon className="h-5 w-5 text-primary" />
-                    </td>
-                    <td>
-                      {attestationData?.memo.value.value 
-                        ? formatIpfsUrl(attestationData.memo.value.value as string)
-                        : "fetching"
-                      }
-                    </td>
-                  </tr>
+                  {/* Memo - only show if not empty */}
+                  {attestationData?.memo.value.value && (
+                    <tr className="border-gray-200">
+                      <td>
+                        <DocumentTextIcon className="h-5 w-5 text-primary" />
+                      </td>
+                      <td>
+                        {attestationData.memo.value.value}
+                      </td>
+                    </tr>
+                  )}
 
                   {/* Attester */}
                   <tr className="border-gray-200">

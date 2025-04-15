@@ -5,11 +5,12 @@
  * Provides filtering and interactive features
  */
 
-import React from "react";
-import Link from "next/link";
+import React, { useCallback, useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { CalendarIcon, ClockIcon, DocumentTextIcon, MapPinIcon, PaperClipIcon } from "@heroicons/react/24/outline";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import EntriesMap from './EntriesMap';
+import EntriesFilter, { FilterOptions } from './EntriesFilter';
 import easConfig from "~~/EAS.config";
 import { useAccount } from 'wagmi';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
@@ -39,6 +40,80 @@ const GET_ATTESTATIONS = gql`
   }
 `;
 
+// Debounce function to limit the rate of function calls
+const debounce = <T extends (...args: any[]) => void>(
+  fn: T,
+  delay: number
+): T => {
+  let timeoutId: NodeJS.Timeout;
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  }) as T;
+};
+
+// Helper function to check if entry passes time of day filter
+const getTimeOfDay = (timestamp: string): 'morning' | 'afternoon' | 'evening' | 'night' => {
+  const hours = new Date(timestamp).getHours();
+  if (hours >= 6 && hours < 12) return 'morning';
+  if (hours >= 12 && hours < 18) return 'afternoon';
+  if (hours >= 18 && hours < 24) return 'evening';
+  return 'night';
+};
+
+// Get location name from coordinates using Mapbox
+const getLocationName = async (coordinates: [number, number]): Promise<string> => {
+  try {
+    const [longitude, latitude] = coordinates;
+    
+    // Use Mapbox's Geocoding API
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (!mapboxToken) {
+      console.error("Mapbox token not found");
+      return "Unknown location";
+    }
+    
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&types=place,country`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Geocoding API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Extract place (city) and country from features
+    if (data.features && data.features.length) {
+      // Try to find a place feature (city)
+      const placeFeature = data.features.find((f: any) => 
+        f.place_type.includes('place')
+      );
+      
+      // Try to find a country feature
+      const countryFeature = data.features.find((f: any) => 
+        f.place_type.includes('country')
+      );
+      
+      if (placeFeature && countryFeature) {
+        return `${placeFeature.text}, ${countryFeature.text}`;
+      } else if (placeFeature) {
+        return placeFeature.text;
+      } else if (countryFeature) {
+        return countryFeature.text;
+      } else if (data.features[0]) {
+        // Return the most relevant result if no specific city or country found
+        return data.features[0].place_name;
+      }
+    }
+    
+    return "Unknown location";
+  } catch (error) {
+    console.error("Error fetching location data from Mapbox:", error);
+    return "Unknown location";
+  }
+};
+
 // Fetching, processing, and displaying attestation data on a map
 const EntriesPage = () => {
   const router = useRouter();
@@ -46,14 +121,32 @@ const EntriesPage = () => {
   const { address } = useAccount();
   
   // Component state
-  const [entries, setEntries] = React.useState<Entry[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [hoveredEntry, setHoveredEntry] = React.useState<Entry | null>(null);
-  const [hoverPosition, setHoverPosition] = React.useState<{ x: number, y: number } | null>(null);
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hoveredEntry, setHoveredEntry] = useState<Entry | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ x: number, y: number } | null>(null);
+  const navigationLock = useRef(false);
+  
+  const [rawFilters, setRawFilters] = useState<FilterOptions>({
+    dateRange: { from: null, to: null },
+    keywords: '',
+    hasMedia: null,
+    timeOfDay: {
+      morning: false,
+      afternoon: false,
+      evening: false,
+      night: false
+    }
+  });
+  
+  const [filters, setFilters] = useState<FilterOptions>(rawFilters);
+  const [locationNames, setLocationNames] = useState<Record<string, string>>({});
+
+  const pendingLocationFetches = useRef<Set<string>>(new Set());
 
   // Fetches and processes attestation entries from the blockchain
-  const fetchEntries = React.useCallback(async () => {
+  const fetchEntries = useCallback(async () => {
     if (!address) {
       setIsLoading(false);
       return;
@@ -112,113 +205,272 @@ const EntriesPage = () => {
     }
   }, [address, targetNetwork.id]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchEntries();
   }, [fetchEntries]);
 
-  return (
-    <main className="p-5 border border-black bg-[#f0f0f0] min-h-screen flex flex-col lg:flex-row">
-      <div className="lg:w-3/4 p-4">
-        <Link href="/" className="text-[#009900] hover:underline">← Back to Home</Link>
-        
-        <div className="mt-4">
-          {/* Header with entry count and refresh button */}
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-[#333] text-2xl font-bold">Your Past Entries {entries.length > 0 && `(${entries.length})`}</h1>
-            <button onClick={fetchEntries} className="text-[#009900] hover:underline">Refresh →</button>
-          </div>
+  // Apply filters to entries
+  const filteredEntries = useMemo(() => {
+    return entries.filter(entry => {
+      // Date range filter
+      if (filters.dateRange.from && new Date(entry.timestamp) < filters.dateRange.from) {
+        return false;
+      }
+      if (filters.dateRange.to) {
+        const endDate = new Date(filters.dateRange.to);
+        endDate.setDate(endDate.getDate() + 1);
+        if (new Date(entry.timestamp) > endDate) {
+          return false;
+        }
+      }
 
-          {/* Conditional rendering based on loading/error state */}
-          {error ? (
-            <div className="text-red-500 text-center py-8">{error}</div>
-          ) : isLoading ? (
-            <div className="text-center py-12"><p className="text-[#333]">Loading your entries...</p></div>
-          ) : entries.length > 0 ? (
-            <div className="h-[75vh] w-full relative">
-              <EntriesMap 
-                entries={entries} 
-                onMarkerClick={(entry) => router.push(`/attestation/uid/${entry.uid}`)} 
-                onMarkerHover={(entry, event) => {
-                  setHoveredEntry(entry);
-                  setHoverPosition({ x: event.clientX, y: event.clientY });
-                }}
-                onMarkerLeave={() => {
-                  setHoveredEntry(null);
-                  setHoverPosition(null);
-                }}
-              />
-              {hoveredEntry && hoverPosition && (
+      // Keywords filter
+      if (filters.keywords && !entry.memo.toLowerCase().includes(filters.keywords.toLowerCase())) {
+        return false;
+      }
+
+      // Media filter
+      if (filters.hasMedia === true && !entry.media) {
+        return false;
+      }
+      if (filters.hasMedia === false && entry.media) {
+        return false;
+      }
+
+      // Time of day filter
+      const entryTimeOfDay = getTimeOfDay(entry.timestamp);
+      const timeFiltersActive = Object.values(filters.timeOfDay).some(v => v);
+      
+      if (timeFiltersActive && !filters.timeOfDay[entryTimeOfDay]) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [entries, filters]);
+
+  const handleFilterChange = useCallback((newFilters: FilterOptions) => {
+    setRawFilters(newFilters);
+    const timeoutId = setTimeout(() => {
+      setFilters(newFilters);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  const handleEntryClick = useCallback(
+    debounce((entryUid: string) => {
+      if (navigationLock.current) return;
+      navigationLock.current = true;
+      router.push(`/attestation/uid/${entryUid}`);
+    }, 300),
+    [router]
+  );
+
+  useEffect(() => {
+    return () => {
+      navigationLock.current = false;
+    };
+  }, []);
+
+  // Handle marker hover to show entry details
+  const handleMarkerHover = useCallback((entry: Entry, event: MouseEvent) => {
+    console.log('Hover entry:', entry);
+    setHoveredEntry({
+      id: entry.id,
+      coordinates: entry.coordinates,
+      timestamp: entry.timestamp,
+      memo: entry.memo,
+      media: entry.media,
+      uid: entry.uid
+    });
+    setHoverPosition({
+      x: event.clientX,
+      y: event.clientY - 20
+    });
+  }, []);
+
+  // Clear both hover states when leaving a marker
+  const handleMarkerLeave = useCallback(() => {
+    // Ensure both states are cleared immediately
+    requestAnimationFrame(() => {
+      setHoveredEntry(null);
+      setHoverPosition(null);
+    });
+  }, []);
+
+  // Update the location name fetching logic
+  useEffect(() => {
+    const fetchLocationNames = async () => {
+      const entriesToFetch = filteredEntries.filter(entry =>
+        !locationNames[entry.id] && !pendingLocationFetches.current.has(entry.id)
+      );
+      if (entriesToFetch.length === 0) return;
+  
+      entriesToFetch.forEach(entry => pendingLocationFetches.current.add(entry.id));
+  
+      const locationPromises = entriesToFetch.map(async (entry) => {
+        try {
+          const locationName = await getLocationName(entry.coordinates);
+          return { id: entry.id, location: locationName };
+        } catch (error) {
+          console.error("Error fetching location for entry:", error);
+          return { id: entry.id, location: "Unknown location" };
+        } finally {
+          pendingLocationFetches.current.delete(entry.id);
+        }
+      });
+  
+      const results = [];
+      const batchSize = 5;
+  
+      for (let i = 0; i < locationPromises.length; i += batchSize) {
+        const batch = locationPromises.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch);
+        results.push(...batchResults);
+  
+        if (i + batchSize < locationPromises.length) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      }
+  
+      // Update state with new location names
+      setLocationNames(prev => {
+        const newLocations = { ...prev };
+        results.forEach(result => {
+          if (result) {
+            newLocations[result.id] = result.location;
+          }
+        });
+        return newLocations;
+      });
+    };
+  
+    if (filteredEntries.length > 0) {
+      fetchLocationNames();
+    }
+  }, [filteredEntries, locationNames]);
+
+  return (
+    <main className="p-5 pb-16 bg-white min-h-screen flex flex-col lg:flex-row">
+      <div className="lg:w-2/5 px-4 pb-4 lg:border-t-0 overflow-y-auto max-h-[calc(100vh-6rem)]">
+        <EntriesFilter 
+          onFilterChange={handleFilterChange}
+          entriesCount={entries.length}
+          filteredCount={filteredEntries.length}
+          currentFilters={rawFilters}
+        />
+        
+        {filteredEntries.length === 0 ? (
+          <div className="p-4 bg-base-200 rounded text-center text-gray-500">
+            No entries match your filters
+          </div>
+        ) : (
+          [...filteredEntries]
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .map(entry => {
+              const entryDate = new Date(entry.timestamp);
+              const formattedDate = entryDate.toLocaleDateString();
+              const formattedTime = entryDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+              const locationName = locationNames[entry.id] || "Loading location...";
+              
+              return (
                 <div 
-                  className="absolute bg-[#009900] text-white p-3 rounded-lg shadow-xl border border-[#007700]"
-                  style={{ 
-                    top: hoverPosition.y - 80,
-                    left: hoverPosition.x - 100,
-                    zIndex: 1000,
-                    minWidth: '200px',
-                    transform: 'translate(-5%, -100%)'
-                  }}
+                  key={entry.id} 
+                  className="p-3 mb-3 cursor-pointer bg-white hover:bg-base-100 transition-colors duration-200 rounded-lg break-words shadow-sm border border-indigo-500" 
+                  onClick={() => handleEntryClick(entry.uid)}
                 >
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium border-b border-[#007700] pb-1">
-                      <span className="opacity-80">Time:</span>{' '}
-                      {new Date(hoveredEntry.timestamp).toLocaleString(undefined, {
-                        weekday: 'short',
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                    {hoveredEntry.media && (
-                      <p className="text-sm">
-                        <span className="opacity-80">Media:</span>{' '}
-                        <span className="font-medium">{hoveredEntry.media}</span>
-                      </p>
-                    )}
-                    {hoveredEntry.memo && hoveredEntry.memo !== 'No memo' && (
-                      <p className="text-sm">
-                        <span className="opacity-80">Memo:</span>{' '}
-                        <span className="font-medium">{hoveredEntry.memo}</span>
-                      </p>
-                    )}
+                  <div className="flex justify-between items-center border-b border-base-200 pb-2 mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        <CalendarIcon className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-gray-600">{formattedDate}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <ClockIcon className="h-4 w-4 text-primary" />
+                        <span className="text-sm text-gray-600">{formattedTime}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPinIcon className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-gray-600">{locationName}</span>
+                    </div>
                   </div>
+                  
+                  {(entry.memo || entry.media) && (
+                    <div className="flex justify-between items-center w-full">
+                      {entry.memo && entry.memo !== 'No memo' ? (
+                        <div className="flex items-center gap-1 flex-1 truncate text-gray-600">
+                          <DocumentTextIcon className="h-4 w-4 text-primary" />
+                          <span>{entry.memo}</span>
+                        </div>
+                      ) : (
+                        <span className="flex-1"></span>
+                      )}
+                      {entry.media && (
+                        <div className="flex items-center gap-1 text-sm ml-2 flex-shrink-0">
+                          <PaperClipIcon className="h-4 w-4 text-primary" />
+                          <span className="text-gray-600">1 attachment</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-[#333] mb-6">No entries found.</p>
-              <Link href="/register" className="text-[#009900] hover:underline">Create your first entry →</Link>
-            </div>
-          )}
-        </div>
+              );
+            })
+        )}
       </div>
-      <div className="lg:w-1/3 p-4 border-t lg:border-t-0 lg:border-l border-black overflow-y-auto max-h-screen">
-        <h2 className="text-[#009900] mb-4 text-xl font-semibold">Historical Locations</h2>
-        {[...entries]
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          .map(entry => (
-          <div 
-            key={entry.id} 
-            className="p-3 mb-3 cursor-pointer bg-[#009900] text-white hover:bg-[#007700] transition-colors duration-200 rounded-lg break-words" 
-            onClick={() => router.push(`/attestation/uid/${entry.uid}`)}
+      <div className="relative lg:w-3/5 h-[calc(100vh-6rem)] overflow-hidden">
+        <EntriesMap
+          entries={filteredEntries}
+          onMarkerClick={(entry) => handleEntryClick(entry.uid)}
+          onMarkerHover={handleMarkerHover}
+          onMarkerLeave={handleMarkerLeave}
+        />
+        {hoveredEntry && hoverPosition && (
+          <div
+            className="absolute z-10 p-3 mb-3 cursor-pointer bg-white text-gray-800 hover:bg-base-100 transition-colors duration-200 rounded-lg break-words shadow-md"
+            style={{
+              left: hoverPosition.x,
+              top: hoverPosition.y,
+              transform: 'translate(-50%, -100%)',
+              minWidth: '200px',
+              maxWidth: '300px'
+            }}
           >
-            <p className="text-sm mb-1 border-b border-[#007700] pb-1">
-              <strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}
-            </p>
-            {entry.media && (
-              <p className="text-sm mb-1">
-                <strong>Media:</strong> {entry.media}
-              </p>
-            )}
-            {entry.memo && entry.memo !== 'No memo' && (
-              <p className="text-sm">
-                <strong>Memo:</strong> {entry.memo}
-              </p>
+            <div className="flex justify-between items-center border-b border-base-200 pb-2 mb-2">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <CalendarIcon className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-gray-600">{new Date(hoveredEntry.timestamp).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <ClockIcon className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-gray-600">{new Date(hoveredEntry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <MapPinIcon className="h-4 w-4 text-primary" />
+                <span className="text-sm text-gray-600">{locationNames[hoveredEntry.id] || "Loading location..."}</span>
+              </div>
+            </div>
+            
+            {(hoveredEntry.memo || hoveredEntry.media) && (
+              <div className="flex justify-between items-center w-full">
+                {hoveredEntry.memo ? (
+                  <span className="flex-1 truncate text-gray-600">{hoveredEntry.memo}</span>
+                ) : (
+                  <span className="flex-1"></span>
+                )}
+                {hoveredEntry.media && (
+                  <div className="flex items-center gap-1 text-sm ml-2 flex-shrink-0">
+                    <PaperClipIcon className="h-4 w-4 text-primary" />
+                    <span className="text-gray-600">1 attachment</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
-        ))}
+        )}
       </div>
     </main>
   );
