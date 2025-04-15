@@ -13,10 +13,19 @@ const Home: React.FC = () => {
     >
       <h1>Welcome to the Astral Logbook ✨</h1>
       <p>This is our beta landing page.</p>
+      
       <a href="/register" style={{ color: "#009900", textDecoration: "underline" }}>
         Register a new entry →
       </a>
+
       <br />
+
+      <a href="/entries" style={{ color: "#009900", textDecoration: "underline" }}>
+        View past entries →
+      </a>
+
+      <br />
+
       <a
         href="https://docs.astral.global/docs/logbook/introduction"
         target="_blank"

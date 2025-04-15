@@ -1,45 +1,66 @@
-// import { EAS, Offchain, SchemaEncoder, SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
-import React, { createContext, useEffect, useState } from "react";
+/**
+ * EAS (Ethereum Attestation Service) context provider
+ * Manages the EAS instance and its connection state for the application
+ */
+
 import { EAS } from "@ethereum-attestation-service/eas-sdk";
+import { createContext, useEffect, useState } from "react";
 import { Config, UseChainIdParameters, useChainId } from "wagmi";
 import easConfig from "~~/EAS.config";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
-// import { foundry } from "viem/chains";
 import { useEthersSigner } from "~~/utils/useEthersSigner";
 
-const EASContext = createContext({ eas: null as EAS | null, isReady: false });
+// Type definition for EAS context value
+interface EASContextValue {
+  eas: EAS | null;
+  isReady: boolean;
+}
 
+// Create context with default values
+const EASContext = createContext<EASContextValue>({
+  eas: null,
+  isReady: false
+});
+
+// Makes EAS instance available to child components
 const EASProvider = ({ children }: { children: React.ReactNode }) => {
   const signer = useEthersSigner();
   const chainId = useChainId(wagmiConfig as UseChainIdParameters<Config>);
   const [eas, setEAS] = useState<EAS | null>(null);
-  const [signerReady, setSignerReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
+  // Initialize or update EAS instance when chain or signer changes
   useEffect(() => {
     if (!chainId) return;
-    // Check if chainId is a key in the easConfig.chains object
 
-    const EASContractAddress = easConfig.chains[String(chainId) as keyof typeof easConfig.chains]?.easContractAddress;
+    try {
+      // Get contract address for current chain
+      const contractAddress = easConfig.chains[String(chainId) as keyof typeof easConfig.chains]?.easContractAddress;
+      
+      if (!contractAddress) {
+        console.error('No EAS contract address for chain:', chainId);
+        return;
+      }
 
-    const newEAS = new EAS(EASContractAddress);
+      // Create and configure new EAS instance
+      const newEAS = new EAS(contractAddress);
+      if (signer) {
+        newEAS.connect(signer);
+      }
 
-    if (signer) {
-      newEAS.connect(signer);
+      setEAS(newEAS);
+      setIsReady(true);
+    } catch (error) {
+      console.error('Failed to initialize EAS:', error);
+      setIsReady(false);
     }
-
-    setEAS(newEAS);
-    setSignerReady(false);
-
-    signer?.provider
-      .getSigner()
-      .then(() => {
-        signer && newEAS.connect(signer);
-        setSignerReady(true);
-      })
-      .catch(err => console.log("[🧪 DEBUG — EAS.connect(signer)](err):", err));
   }, [chainId, signer]);
 
-  return <EASContext.Provider value={{ eas, isReady: signerReady }}>{children}</EASContext.Provider>;
+  return (
+    <EASContext.Provider value={{ eas, isReady }}>
+      {children}
+    </EASContext.Provider>
+  );
 };
 
 export { EASContext, EASProvider };

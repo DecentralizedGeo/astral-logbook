@@ -1,219 +1,255 @@
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
 "use client";
 
-import React, { Dispatch, SyntheticEvent, useContext, useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import "../styles/custom-datepicker.css";
-import PintataUpload from "./Piniata";
 import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { ethers } from "ethers";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { Config, UseChainIdParameters, useAccount, useChainId } from "wagmi";
+import { Config, UseChainIdParameters, useAccount, useChainId, useBalance } from "wagmi";
 import { ClockIcon, DocumentTextIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import easConfig from "~~/EAS.config";
 import { IFormValues } from "~~/app/interface/interface";
 import { EASContext } from "~~/components/EasContextProvider";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
-const CheckinForm = ({ lngLat, setIsTxLoading }: { lngLat: number[]; setIsTxLoading: Dispatch<boolean> }) => {
-  // NextJS redirect
-  const now = new Date();
-  const { push } = useRouter();
-  const [formValues, setFormValues] = useState<IFormValues>({
-    longitude: lngLat[0].toString(), // to be picked up by prop
-    latitude: lngLat[1].toString(), // to be picked up by prop
+// Import styles
+import "../styles/custom-datepicker.css";
+import "react-datepicker/dist/react-datepicker.css";
 
-    eventTimestamp: Math.floor(Number(now) / 1000),
+interface CheckinFormProps {
+  lngLat: number[];
+  setIsTxLoading: (loading: boolean) => void;
+}
+
+const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => {
+  const router = useRouter();
+  const { isConnected, address } = useAccount();
+  const chainId = useChainId(wagmiConfig as UseChainIdParameters<Config>);
+  const { eas, isReady } = React.useContext(EASContext);
+  const { data: balance } = useBalance({ address });
+
+  // Form state
+  const [formValues, setFormValues] = React.useState<IFormValues>({
+    longitude: lngLat[0].toString(),
+    latitude: lngLat[1].toString(),
+    eventTimestamp: Math.floor(Date.now() / 1000),
     data: "",
     mediaType: [""],
     mediaData: [""],
   });
+  const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
+  const [error, setError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const { isConnected } = useAccount();
-  const chainId = useChainId(wagmiConfig as UseChainIdParameters<Config>);
+  // Update coordinates when map selection changes
+  React.useEffect(() => {
+    setFormValues(prev => ({
+      ...prev,
+      longitude: lngLat[0].toString(),
+      latitude: lngLat[1].toString(),
+    }));
+  }, [lngLat]);
 
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [error, setError] = useState<string | null>(null);
-
+  // Form handlers
   const handleDateChange = (date: Date | null) => {
     if (date) {
       setSelectedDate(date);
-      setFormValues(prevFormValues => ({
-        ...prevFormValues, 
-        eventTimestamp: Math.floor(Number(date) / 1000),
+      setFormValues(prev => ({
+        ...prev,
+        eventTimestamp: Math.floor(date.getTime() / 1000),
         timestamp: date,
       }));
     }
   };
 
-  // Use EAS SDK
-  const { eas, isReady } = useContext(EASContext); // does this need error handling in case EAS is null or not ready?
-  // const [attestation, setAttestation] = useState<Attestation>();
-
-  // Initialize SchemaEncoder with the schema string
-  const schemaEncoder = new SchemaEncoder(easConfig.schema.rawString);
-  const schemaUID = easConfig.chains[chainId.toString() as keyof typeof easConfig.chains].schemaUID;
-
-  const handleChange = (event: { preventDefault?: () => void; target: { name: string; value: any } }) => {
-    if (event.preventDefault) event.preventDefault();
-    const updatedFormValues = { ...formValues, [event.target.name]: event.target.value };
-    setFormValues(updatedFormValues);
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormValues(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleClick = (event: React.MouseEvent<HTMLInputElement>) => {
-    if (!isConnected) {
-      event.preventDefault(); // Prevent form submission or any action
-      alert("Please connect to record log entry.");
-    } else {
-      handleSubmit(event);
-    }
+  // Gets schema UID for current chain
+  const getSchemaUID = () => {
+    if (!chainId) throw new Error("Chain ID is not available");
+    const chainConfig = easConfig.chains[chainId.toString() as keyof typeof easConfig.chains];
+    if (!chainConfig?.schemaUID) throw new Error(`No schema UID for chain ID ${chainId}`);
+    return chainConfig.schemaUID;
   };
 
-  // Set attestation from EAS api
-  const handleSubmit = async (event: SyntheticEvent) => {
+  // Handles form submission and attestation creation
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (isSubmitting || !isConnected) return;
+
+    setIsSubmitting(true);
     setIsTxLoading(true);
     setError(null);
 
-    if (!isReady) {
-      setError("EAS is not ready");
-      setIsTxLoading(false);
-      return;
-    }
-
-    if (!schemaUID) {
-      throw new Error("Schema UID is null, cannot proceed with attestation");
-    }
-
     try {
-      const encodedData = schemaEncoder.encodeData([
-        {
-          name: "eventTimestamp",
-          value: formValues.eventTimestamp, // here we convert to nowInSeconds
-          type: "uint256",
-        },
-        {
-          name: "srs",
-          value: "EPSG:4326", // hard coded for v0.1
-          type: "string",
-        },
-        {
-          name: "locationType",
-          value: "DecimalDegrees<string>", // hard coded for v0.1
-          type: "string",
-        },
-        {
-          name: "location",
-          // value: `${formValues.longitude.toString()}, ${formValues.latitude.toString()}`,
-          value: `${formValues.longitude.toString()}, ${formValues.latitude.toString()}`.toString(),
-          type: "string",
-        },
-        {
-          name: "recipeType",
-          value: ["NEED A STRING ARRAY HERE"],
-          type: "string[]",
-        },
-        {
-          name: "recipePayload",
-          value: [ethers.toUtf8Bytes("NEED A BYTES ARRAY HERE")],
-          type: "bytes[]",
-        },
-        {
-          name: "mediaType",
-          value: formValues.mediaType, // storageSystem:MIMEtype
-          type: "string[]",
-        },
-        {
-          name: "mediaData",
-          value: formValues.mediaData, // CID, encoded as bytes somehow
-          type: "string[]",
-        },
-        { name: "memo", value: formValues.data, type: "string" },
+      // Check balance before proceeding
+      console.log("Checking balance...");
+      if (!balance || balance.value === 0n) {
+        throw new Error("Insufficient balance to create attestation");
+      }
+      console.log("Completed checking balance.");
+
+      if (!isReady || !eas) {
+        throw new Error("EAS is not ready");
+      }
+
+      // Upload file if provided
+      console.log("Uploading file...");
+      const fileInput = (event.target as HTMLFormElement).querySelector('input[type="file"]') as HTMLInputElement;
+      const { fileCid, fileType } = await handleFileUpload(fileInput);
+      console.log("Completed uploading file.");
+
+      // Create and submit attestation
+      console.log("Creating attestation...");
+      const schemaUID = getSchemaUID();
+      // Make sure the schema string is valid
+      const schemaString = easConfig.schema.rawString || 'uint256 eventTimestamp, string srs, string locationType, string location, string[] recipeType, bytes[] recipePayload, string[] mediaType, string[] mediaData, string memo';
+      
+      const encodedData = new SchemaEncoder(schemaString).encodeData([
+        { name: 'eventTimestamp', value: formValues.eventTimestamp, type: 'uint256' },
+        { name: 'srs', value: 'EPSG:4326', type: 'string' },
+        { name: 'locationType', value: 'DecimalDegrees<string>', type: 'string' },
+        { name: 'location', value: `${formValues.longitude || '0'}, ${formValues.latitude || '0'}`, type: 'string' },
+        { name: 'recipeType', value: ['text/plain'], type: 'string[]' },
+        { name: 'recipePayload', value: [ethers.toUtf8Bytes('empty')], type: 'bytes[]' },
+        { name: 'mediaType', value: fileType ? [fileType] : ['text/plain'], type: 'string[]' },
+        { name: 'mediaData', value: [fileCid || ''], type: 'string[]' },
+        { name: 'memo', value: formValues.data || '', type: 'string' }
       ]);
 
-      const tx = await eas?.attest({
+      const tx = await eas.attest({
         schema: schemaUID,
         data: {
-          recipient: easConfig.chains[String(chainId) as keyof typeof easConfig.chains].easContractAddress, // To be read by chainId: easConfig.chains[chainId].EAScontract;
+          recipient: easConfig.chains[chainId.toString() as keyof typeof easConfig.chains].easContractAddress,
           expirationTime: 0n,
-          revocable: true, // Be aware that if your schema is not revocable, this MUST be false
+          revocable: true,
           data: encodedData,
         },
       });
 
+      console.log("Submitted attestation");
       const newAttestationUID = await tx?.wait();
-      push(`/attestation/uid/${newAttestationUID}`);
+      console.log("Completed attestation submission");
+      
+      router.push(`/attestation/uid/${newAttestationUID}`);
     } catch (err) {
-      if (err instanceof Error) {
-        setError((err.message as string) || "An error occurred while creating the attestation");
-      } else {
-        setError("An error occurred while creating the attestationm");
-      }
+      console.error('Error creating log entry:', err);
+      setError(err instanceof Error ? err.message : "Failed to create log entry");
     } finally {
+      setIsSubmitting(false);
       setIsTxLoading(false);
     }
   };
 
   return (
     <div className="flex items-center flex-col w-full flex-grow">
-      <div className="flex-grow center w-full">
-        <form onSubmit={handleSubmit} className="card m-5 flex flex-col gap-4">
-          <label className="flex flex-row items-center gap-2">
-            <MapPinIcon className="h-5 w-5 text-primary flex-shrink-0 flex-grow-0" style={{ flexBasis: "auto" }} />
-            <input
-              type="number"
-              name="longitude"
-              className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
-              value={lngLat[0]}
-              onChange={handleChange}
-            />
-            <input
-              type="number"
-              name="latitude"
-              className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
-              value={lngLat[1]}
-              onChange={handleChange}
-            />
-          </label>
-          <label className="flex flex-row items-center gap-2">
-            <ClockIcon className="h-5 w-5 text-primary" />
-            <DatePicker
-              selected={selectedDate}
-              onChange={handleDateChange}
-              showTimeSelect
-              timeIntervals={1}
-              dateFormat="Pp"
-              // value={formValues.eventTimestamp}
-              className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
-            />
-          </label>
-          <label className="flex flex-row items-center gap-2 w-full">
-            <DocumentTextIcon className="h-5 w-5 text-primary" />
+      <form onSubmit={handleSubmit} className="card m-5 flex flex-col gap-4">
+        {/* Location inputs */}
+        <label className="flex flex-row items-center gap-2">
+          <MapPinIcon className="h-5 w-5 text-primary flex-shrink-0" />
+          <input
+            type="number"
+            name="longitude"
+            value={formValues.longitude}
+            onChange={handleInputChange}
+            className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
+            required
+          />
+          <input
+            type="number"
+            name="latitude"
+            value={formValues.latitude}
+            onChange={handleInputChange}
+            className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
+            required
+          />
+        </label>
+
+        {/* Date/time picker */}
+        <label className="flex flex-row items-center gap-2">
+          <ClockIcon className="h-5 w-5 text-primary" />
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            showTimeSelect
+            timeIntervals={1}
+            dateFormat="Pp"
+            className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
+            required
+          />
+        </label>
+
+        {/* Memo input */}
+        <label className="flex flex-row items-center gap-2">
+          <DocumentTextIcon className="h-5 w-5 text-primary" />
+          <div className="w-full">
+            <span className="text-sm text-gray-500 mb-1 block">Memo (optional)</span>
             <input
               type="text"
               name="data"
               value={formValues.data}
-              placeholder="Memo"
+              onChange={handleInputChange}
+              placeholder="No memo provided."
               className="input input-bordered w-full bg-base-200 border-indigo-500 text-black"
-              onChange={handleChange}
             />
-          </label>
-          <PintataUpload formValues={formValues} setFormValues={setFormValues} />
-          {error && <p className="text-red-500">{error}</p>}
-          <input
-            type="submit"
-            value={isConnected ? "Record Log Entry" : "Connect to record"}
-            className={`input btn ${
-              isConnected
-                ? "bg-primary text-white hover:scale-105 hover:bg-dark-primary cursor-pointer"
-                : "bg-gray-400 text-white cursor-not-allowed"
-            }`}
-            onClick={handleClick} // Control action with onClick
-          />
-        </form>
-      </div>
+          </div>
+        </label>
+
+        {/* File upload */}
+        <label className="flex flex-row items-center gap-2">
+          <DocumentTextIcon className="h-5 w-5 text-primary" />
+          <div className="w-full">
+            <span className="text-sm text-gray-500 mb-1 block">Image (optional)</span>
+            <input
+              type="file"
+              className="file-input file-input-bordered w-full"
+              accept="image/*"
+            />
+          </div>
+        </label>
+
+        {error && <p className="text-error text-sm">{error}</p>}
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          className={`btn ${isConnected ? "btn-primary" : "btn-disabled"}`}
+          disabled={!isConnected || isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="loading loading-spinner" />
+              Recording...
+            </>
+          ) : isConnected ? (
+            "Record Log Entry"
+          ) : (
+            "Connect to record"
+          )}
+        </button>
+      </form>
     </div>
   );
-};
+}
+
+// Handles file upload to Web3.Storage
+async function handleFileUpload(fileInput: HTMLInputElement): Promise<{ fileCid: string; fileType: string }> {
+  if (!fileInput?.files?.[0]) return { fileCid: "", fileType: "" };
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  const response = await fetch('/api/files', { method: 'POST', body: formData });
+  if (!response.ok) throw new Error('Failed to upload file');
+  const data = await response.json();
+  return { fileCid: data.cid, fileType: fileInput.files[0].type };
+}
 
 export default CheckinForm;
