@@ -108,7 +108,7 @@ const EntriesFilter: React.FC<EntriesFilterProps> = ({
     <div className="bg-white rounded-lg shadow mb-4 overflow-hidden">
       {/* Filter header - always visible with toggle functionality */}
       <div 
-        className="flex justify-between items-center p-3 bg-[#009900] text-white cursor-pointer"
+        className="flex justify-between items-center p-3 bg-primary text-primary-content cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="font-medium flex items-center">
@@ -118,7 +118,7 @@ const EntriesFilter: React.FC<EntriesFilterProps> = ({
           Filter Entries
           {/* Display "Active" badge when filters are applied */}
           {hasActiveFilters() && (
-            <span className="ml-2 bg-white text-[#009900] text-xs px-2 py-1 rounded-full">
+            <span className="ml-2 bg-white text-primary text-xs px-2 py-1 rounded-full">
               Active
             </span>
           )}
@@ -138,7 +138,7 @@ const EntriesFilter: React.FC<EntriesFilterProps> = ({
             <div className="flex space-x-2">
               <input
                 type="date"
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm flex-1"
+                className="px-3 py-2 border rounded-md text-sm flex-1 bg-base-200 border-indigo-500 text-black"
                 value={formatDateForInput(filters.dateRange.from)}
                 onChange={(e) => handleFilterChange({
                   dateRange: {
@@ -150,7 +150,7 @@ const EntriesFilter: React.FC<EntriesFilterProps> = ({
               />
               <input
                 type="date"
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm flex-1"
+                className="px-3 py-2 border rounded-md text-sm flex-1 bg-base-200 border-indigo-500 text-black"
                 value={formatDateForInput(filters.dateRange.to)}
                 onChange={(e) => handleFilterChange({
                   dateRange: {
@@ -168,7 +168,7 @@ const EntriesFilter: React.FC<EntriesFilterProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">Keywords</label>
             <input
               type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              className="w-full px-3 py-2 border rounded-md text-sm bg-base-200 border-indigo-500 text-black"
               value={filters.keywords}
               onChange={(e) => handleFilterChange({ keywords: e.target.value })}
               placeholder="Search in memos..."
@@ -180,13 +180,13 @@ const EntriesFilter: React.FC<EntriesFilterProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">Media</label>
             <div className="flex space-x-2">
               <button
-                className={`px-3 py-1 text-sm rounded-md ${filters.hasMedia === true ? 'bg-[#009900] text-white' : 'bg-gray-200 text-gray-700'}`}
+                className={`px-3 py-1 text-sm rounded-md ${filters.hasMedia === true ? 'bg-primary text-primary-content' : 'bg-gray-200 text-gray-700'}`}
                 onClick={() => handleFilterChange({ hasMedia: filters.hasMedia === true ? null : true })}
               >
                 With Media
               </button>
               <button
-                className={`px-3 py-1 text-sm rounded-md ${filters.hasMedia === false ? 'bg-[#009900] text-white' : 'bg-gray-200 text-gray-700'}`}
+                className={`px-3 py-1 text-sm rounded-md ${filters.hasMedia === false ? 'bg-primary text-primary-content' : 'bg-gray-200 text-gray-700'}`}
                 onClick={() => handleFilterChange({ hasMedia: filters.hasMedia === false ? null : false })}
               >
                 Without Media
@@ -206,7 +206,7 @@ const EntriesFilter: React.FC<EntriesFilterProps> = ({
               ].map(time => (
                 <button
                   key={time.key}
-                  className={`px-3 py-1 text-sm rounded-md ${filters.timeOfDay[time.key as keyof typeof filters.timeOfDay] ? 'bg-[#009900] text-white' : 'bg-gray-200 text-gray-700'}`}
+                  className={`px-3 py-1 text-sm rounded-md ${filters.timeOfDay[time.key as keyof typeof filters.timeOfDay] ? 'bg-primary text-primary-content' : 'bg-gray-200 text-gray-700'}`}
                   onClick={() => handleFilterChange({
                     timeOfDay: {
                       ...filters.timeOfDay,

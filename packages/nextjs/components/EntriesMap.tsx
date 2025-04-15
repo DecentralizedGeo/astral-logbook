@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import mapboxgl from '!mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 import "mapbox-gl/dist/mapbox-gl.css";
 
 // Initialize Mapbox with access token
@@ -77,7 +77,7 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
         source: 'entries',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': ['step', ['get', 'point_count'], '#009900', 10, '#007700', 30, '#005500'],
+          'circle-color': ['step', ['get', 'point_count'], '#c39bd3', 10, '#af7ac5', 30, '#9b59b6'],
           'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40]
         }
       });
@@ -92,6 +92,9 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
           'text-field': '{point_count_abbreviated}',
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
           'text-size': 12
+        },
+        paint: {
+          'text-color': '#ffffff'
         }
       });
 
@@ -102,12 +105,12 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
         source: 'entries',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#009900',
+          'circle-color': '#c39bd3',
           'circle-radius': 8,
           'circle-stroke-width': 1,
           'circle-stroke-color': '#fff',
-          'circle-opacity': 0.5,
-          'circle-stroke-opacity': 0.5
+          'circle-opacity': 0.9,
+          'circle-stroke-opacity': 0.9
         }
       });
 
