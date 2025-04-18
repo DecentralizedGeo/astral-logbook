@@ -61,14 +61,14 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             cid: cid.toString(),
             storage: storageInfo,
-            uri: `https://${cid.toString()}.ipfs.dweb.link`
+            uri: `https://${cid.toString()}.ipfs.w3s.link`
           }, { status: 200 });
         } catch (storageError) {
           console.error('Storage status check failed:', storageError);
           return NextResponse.json({
             cid: cid.toString(),
             error: "Storage status check failed",
-            uri: `https://${cid.toString()}.ipfs.dweb.link`
+            uri: `https://${cid.toString()}.ipfs.w3s.link`
           }, { status: 200 });
         }
       } catch (error) {
@@ -108,14 +108,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           cid: cid.toString(),
           storage: storageInfo,
-          uri: `https://${cid.toString()}.ipfs.dweb.link/${file.name}`
+          uri: `https://${cid.toString()}.ipfs.w3s.link/${file.name}`
         }, { status: 200 });
       } catch (storageError) {
         console.error('Storage verification failed:', storageError);
         return NextResponse.json({
           cid: cid.toString(),
           error: "Storage verification failed",
-          uri: `https://${cid.toString()}.ipfs.dweb.link/${file.name}`
+          uri: `https://${cid.toString()}.ipfs.w3s.link/${file.name}`
         }, { status: 200 });
       }
     } catch (error) {

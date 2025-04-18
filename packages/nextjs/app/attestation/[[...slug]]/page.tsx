@@ -25,7 +25,7 @@ import hexToDate from "~~/utils/hexToDate";
 import parseLocation from "~~/utils/parseLocation";
 
 // Formats a CID into a valid IPFS gateway URL
-const formatIpfsUrl = (cid: string) => `https://${cid}.ipfs.dweb.link`;
+const formatIpfsUrl = (cid: string) => `https://${cid}.ipfs.w3s.link`;
 
 const AttestationPage: NextPage = () => {
   const params = useParams();
