@@ -273,7 +273,7 @@ const EntriesPage = () => {
   }, []);
 
   // Handle marker hover to show entry details
-  const handleMarkerHover = useCallback((entry: Entry, event: MouseEvent) => {
+  const handleMarkerHover = useCallback((entry: Entry, pointPosition: { x: number, y: number }) => {
     console.log('Hover entry:', entry);
     setHoveredEntry({
       id: entry.id,
@@ -283,15 +283,12 @@ const EntriesPage = () => {
       media: entry.media,
       uid: entry.uid
     });
-    setHoverPosition({
-      x: event.clientX,
-      y: event.clientY - 20
-    });
+    setHoverPosition(pointPosition);
   }, []);
 
-  // Clear both hover states when leaving a marker
+  // Clear hover state when leaving a marker
   const handleMarkerLeave = useCallback(() => {
-    // Ensure both states are cleared immediately
+    // Ensure state is cleared immediately
     requestAnimationFrame(() => {
       setHoveredEntry(null);
       setHoverPosition(null);
@@ -376,7 +373,8 @@ const EntriesPage = () => {
               return (
                 <div 
                   key={entry.id} 
-                  className="p-3 mb-3 cursor-pointer bg-white hover:bg-base-100 transition-colors duration-200 rounded-lg break-words shadow-sm border border-indigo-500" 
+                  className="p-3 mb-3 cursor-pointer transition-colors duration-200 rounded-lg break-words shadow-sm border 
+                    bg-white border-indigo-500 hover:bg-primary hover:text-primary-content"
                   onClick={() => handleEntryClick(entry.uid)}
                 >
                   <div className="flex justify-between items-center border-b border-base-200 pb-2 mb-2">
@@ -399,9 +397,9 @@ const EntriesPage = () => {
                   {(entry.memo || entry.media) && (
                     <div className="flex justify-between items-center w-full">
                       {entry.memo && entry.memo !== 'No memo' ? (
-                        <div className="flex items-center gap-1 flex-1 truncate text-gray-600">
+                        <div className="flex items-center gap-1 flex-1 truncate">
                           <DocumentTextIcon className="h-4 w-4 text-primary" />
-                          <span>{entry.memo}</span>
+                          <span className="text-gray-600">{entry.memo}</span>
                         </div>
                       ) : (
                         <span className="flex-1"></span>
@@ -428,47 +426,60 @@ const EntriesPage = () => {
         />
         {hoveredEntry && hoverPosition && (
           <div
-            className="absolute z-10 p-3 mb-3 cursor-pointer bg-white text-gray-800 hover:bg-base-100 transition-colors duration-200 rounded-lg break-words shadow-md"
+            className="absolute z-50 p-4 bg-white text-gray-800 hover:bg-base-100 transition-colors duration-200 rounded-lg shadow-md"
             style={{
+              position: 'fixed',
               left: hoverPosition.x,
-              top: hoverPosition.y,
-              transform: 'translate(-50%, -100%)',
+              top: hoverPosition.y + 20,
+              transform: 'translateX(-50%)',
               minWidth: '200px',
-              maxWidth: '300px'
+              maxWidth: '350px',
+              width: 'max-content',
+              backgroundColor: 'rgba(255, 255, 255, 0.98)',
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+              overflowWrap: 'break-word',
+              wordWrap: 'break-word',
+              hyphens: 'auto'
             }}
           >
-            <div className="flex justify-between items-center border-b border-base-200 pb-2 mb-2">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                  <CalendarIcon className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-gray-600">{new Date(hoveredEntry.timestamp).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <ClockIcon className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-gray-600">{new Date(hoveredEntry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                </div>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="text-sm text-gray-600">
+                  {new Date(hoveredEntry.timestamp).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                  })}
+                </span>
               </div>
-              <div className="flex items-center gap-1">
-                <MapPinIcon className="h-4 w-4 text-primary" />
-                <span className="text-sm text-gray-600">{locationNames[hoveredEntry.id] || "Loading location..."}</span>
+              <div className="flex items-center gap-2">
+                <ClockIcon className="h-4 w-4 text-primary" />
+                <span className="text-sm text-gray-600">
+                  {new Date(hoveredEntry.timestamp).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  })}
+                </span>
               </div>
+              
+              {hoveredEntry.memo && hoveredEntry.memo !== 'No memo' && (
+                <div className="flex items-start gap-2">
+                  <DocumentTextIcon className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-600 break-words whitespace-normal">
+                    {hoveredEntry.memo}
+                  </span>
+                </div>
+              )}
+              
+              {hoveredEntry.media && (
+                <div className="flex items-center gap-2">
+                  <PaperClipIcon className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-gray-600">1 attachment</span>
+                </div>
+              )}
             </div>
-            
-            {(hoveredEntry.memo || hoveredEntry.media) && (
-              <div className="flex justify-between items-center w-full">
-                {hoveredEntry.memo ? (
-                  <span className="flex-1 truncate text-gray-600">{hoveredEntry.memo}</span>
-                ) : (
-                  <span className="flex-1"></span>
-                )}
-                {hoveredEntry.media && (
-                  <div className="flex items-center gap-1 text-sm ml-2 flex-shrink-0">
-                    <PaperClipIcon className="h-4 w-4 text-primary" />
-                    <span className="text-gray-600">1 attachment</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
       </div>
