@@ -299,26 +299,54 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
               Recording...
             </>
           ) : isConnected ? (
-            "Record Log Entry"
+            'Record Log Entry'
           ) : (
-            "Connect to record"
+            'Connect to record'
           )}
         </button>
       </form>
     </div>
   );
-}
+};
 
 // Handles file upload to Web3.Storage
 async function handleFileUpload(fileInput: HTMLInputElement): Promise<{ fileCid: string; fileType: string }> {
-  if (!fileInput?.files?.[0]) return { fileCid: "", fileType: "" };
+  if (!fileInput?.files?.[0]) return { fileCid: '', fileType: '' };
 
-  const formData = new FormData();
-  formData.append('file', fileInput.files[0]);
-  const response = await fetch('/api/files', { method: 'POST', body: formData });
-  if (!response.ok) throw new Error('Failed to upload file');
-  const data = await response.json();
-  return { fileCid: data.cid, fileType: fileInput.files[0].type };
+  const file = fileInput.files[0];
+
+  // Resolve active storage service from global store
+  const state = useGlobalState.getState();
+  // Prefer explicit activeService, otherwise pick the first authenticated service, otherwise first available
+  const activeService = state.activeService || state.availableServices.find(s => s.isAuthenticated) || state.availableServices[0];
+  if (!activeService) {
+    throw new Error('No storage service configured');
+  }
+
+  const uploadUrl = activeService.uploadEndpoint || `/api/storage/${activeService.id}/files`;
+  const allowed = activeService.allowedFileTypes ?? ['image/jpeg', 'image/png', 'image/gif'];
+  const maxSize = activeService.maxFileSize ?? 10 * 1024 * 1024;
+
+  // Client-side validation
+  if (file.size > maxSize) throw new Error(`File too large. Max ${Math.round(maxSize / 1024 / 1024)} MB`);
+  if (file.type && !allowed.includes(file.type)) throw new Error('Invalid file type. Allowed types: JPEG, PNG, GIF');
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  // Include auth fields if the service requires them
+  if (activeService.requiresAuth) {
+    if (activeService.userEmail) fd.append('email', activeService.userEmail);
+    if (activeService.activeSpace?.did) fd.append('spaceDid', activeService.activeSpace.activeSpace?.did ?? activeService.activeSpace?.did);
+  }
+
+  const res = await fetch(uploadUrl, { method: 'POST', body: fd });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Upload failed');
+  }
+  const json = await res.json();
+  return { fileCid: json.cid || json.fileId || '', fileType: file.type };
 }
 
 export default CheckinForm;
