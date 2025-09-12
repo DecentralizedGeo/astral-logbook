@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 type PaginationButtonProps = {
   currentPage: number;
@@ -12,8 +12,8 @@ export const PaginationButton = ({ currentPage, totalItems, setCurrentPage }: Pa
   const isPrevButtonDisabled = currentPage === 0;
   const isNextButtonDisabled = currentPage + 1 >= Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  const prevButtonClass = isPrevButtonDisabled ? "bg-gray-200 cursor-default" : "btn btn-primary";
-  const nextButtonClass = isNextButtonDisabled ? "bg-gray-200 cursor-default" : "btn btn-primary";
+  const prevButtonClass = isPrevButtonDisabled ? 'bg-gray-200 cursor-default' : 'btn btn-primary';
+  const nextButtonClass = isNextButtonDisabled ? 'bg-gray-200 cursor-default' : 'btn btn-primary';
 
   if (isNextButtonDisabled && isPrevButtonDisabled) return null;
 

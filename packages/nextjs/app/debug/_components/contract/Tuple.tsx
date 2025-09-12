@@ -1,8 +1,8 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { ContractInput } from "./ContractInput";
-import { getFunctionInputKey, getInitalTupleFormState } from "./utilsContract";
-import { replacer } from "~~/utils/scaffold-eth/common";
-import { AbiParameterTuple } from "~~/utils/scaffold-eth/contract";
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { ContractInput } from './ContractInput';
+import { getFunctionInputKey, getInitalTupleFormState } from './utilsContract';
+import { replacer } from '~~/utils/scaffold-eth/common';
+import { AbiParameterTuple } from '~~/utils/scaffold-eth/contract';
 
 type TupleProps = {
   abiTupleParameter: AbiParameterTuple;
@@ -34,7 +34,7 @@ export const Tuple = ({ abiTupleParameter, setParentForm, parentStateObjectKey }
         </div>
         <div className="ml-3 flex-col space-y-4 border-secondary/80 border-l-2 pl-4 collapse-content">
           {abiTupleParameter?.components?.map((param, index) => {
-            const key = getFunctionInputKey(abiTupleParameter.name || "tuple", param, index);
+            const key = getFunctionInputKey(abiTupleParameter.name || 'tuple', param, index);
             return <ContractInput setForm={setForm} form={form} key={key} stateObjectKey={key} paramType={param} />;
           })}
         </div>

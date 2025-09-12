@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Address as AddressType, createWalletClient, http, parseEther } from "viem";
-import { hardhat } from "viem/chains";
-import { useAccount } from "wagmi";
-import { BanknotesIcon } from "@heroicons/react/24/outline";
-import { Address, AddressInput, Balance, EtherInput } from "~~/components/scaffold-eth";
-import { useTransactor } from "~~/hooks/scaffold-eth";
-import { notification } from "~~/utils/scaffold-eth";
+import { useEffect, useState } from 'react';
+import { Address as AddressType, createWalletClient, http, parseEther } from 'viem';
+import { hardhat } from 'viem/chains';
+import { useAccount } from 'wagmi';
+import { BanknotesIcon } from '@heroicons/react/24/outline';
+import { Address, AddressInput, Balance, EtherInput } from '~~/components/scaffold-eth';
+import { useTransactor } from '~~/hooks/scaffold-eth';
+import { notification } from '~~/utils/scaffold-eth';
 
 // Account index to use from generated hardhat accounts.
 const FAUCET_ACCOUNT_INDEX = 0;
@@ -24,7 +24,7 @@ export const Faucet = () => {
   const [loading, setLoading] = useState(false);
   const [inputAddress, setInputAddress] = useState<AddressType>();
   const [faucetAddress, setFaucetAddress] = useState<AddressType>();
-  const [sendValue, setSendValue] = useState("");
+  const [sendValue, setSendValue] = useState('');
 
   const { chain: ConnectedChain } = useAccount();
 
@@ -43,12 +43,12 @@ export const Faucet = () => {
               - Did you forget to run <code className="italic bg-base-300 text-base font-bold">yarn chain</code> ?
             </p>
             <p className="mt-1 break-normal">
-              - Or you can change <code className="italic bg-base-300 text-base font-bold">targetNetwork</code> in{" "}
+              - Or you can change <code className="italic bg-base-300 text-base font-bold">targetNetwork</code> in{' '}
               <code className="italic bg-base-300 text-base font-bold">scaffold.config.ts</code>
             </p>
           </>,
         );
-        console.error("⚡️ ~ file: Faucet.tsx:getFaucetAddress ~ error", error);
+        console.error('⚡️ ~ file: Faucet.tsx:getFaucetAddress ~ error', error);
       }
     };
     getFaucetAddress();
@@ -68,9 +68,9 @@ export const Faucet = () => {
       });
       setLoading(false);
       setInputAddress(undefined);
-      setSendValue("");
+      setSendValue('');
     } catch (error) {
-      console.error("⚡️ ~ file: Faucet.tsx:sendETH ~ error", error);
+      console.error('⚡️ ~ file: Faucet.tsx:sendETH ~ error', error);
       setLoading(false);
     }
   };
@@ -109,7 +109,7 @@ export const Faucet = () => {
             <div className="flex flex-col space-y-3">
               <AddressInput
                 placeholder="Destination Address"
-                value={inputAddress ?? ""}
+                value={inputAddress ?? ''}
                 onChange={value => setInputAddress(value as AddressType)}
               />
               <EtherInput placeholder="Amount to send" value={sendValue} onChange={value => setSendValue(value)} />

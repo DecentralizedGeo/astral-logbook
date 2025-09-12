@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Address, formatEther } from "viem";
-import { useBalance, useBlockNumber } from "wagmi";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
-import { useGlobalState } from "~~/services/store/store";
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Address, formatEther } from 'viem';
+import { useBalance, useBlockNumber } from 'wagmi';
+import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork';
+import { useGlobalState } from '~~/services/store/store';
 
 type BalanceProps = {
   address?: Address;
@@ -16,7 +16,7 @@ type BalanceProps = {
 /**
  * Display (ETH & USD) balance of an ETH address.
  */
-export const Balance = ({ address, className = "", usdMode }: BalanceProps) => {
+export const Balance = ({ address, className = '', usdMode }: BalanceProps) => {
   const { targetNetwork } = useTargetNetwork();
 
   const queryClient = useQueryClient();

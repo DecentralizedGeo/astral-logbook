@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { isAddress, isHex } from "viem";
-import { hardhat } from "viem/chains";
-import { usePublicClient } from "wagmi";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAddress, isHex } from 'viem';
+import { hardhat } from 'viem/chains';
+import { usePublicClient } from 'wagmi';
 
 export const SearchBar = () => {
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState('');
   const router = useRouter();
 
   const client = usePublicClient({ chainId: hardhat.id });
@@ -22,7 +22,7 @@ export const SearchBar = () => {
           return;
         }
       } catch (error) {
-        console.error("Failed to fetch transaction:", error);
+        console.error('Failed to fetch transaction:', error);
       }
     }
 

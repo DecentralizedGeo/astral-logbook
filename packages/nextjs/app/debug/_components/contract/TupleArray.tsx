@@ -1,8 +1,8 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { ContractInput } from "./ContractInput";
-import { getFunctionInputKey, getInitalTupleArrayFormState } from "./utilsContract";
-import { replacer } from "~~/utils/scaffold-eth/common";
-import { AbiParameterTuple } from "~~/utils/scaffold-eth/contract";
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { ContractInput } from './ContractInput';
+import { getFunctionInputKey, getInitalTupleArrayFormState } from './utilsContract';
+import { replacer } from '~~/utils/scaffold-eth/common';
+import { AbiParameterTuple } from '~~/utils/scaffold-eth/contract';
 
 type TupleArrayProps = {
   abiTupleParameter: AbiParameterTuple & { isVirtual?: true };
@@ -22,8 +22,8 @@ export const TupleArray = ({ abiTupleParameter, setParentForm, parentStateObject
   useEffect(() => {
     // Extract and group fields based on index prefix
     const groupedFields = Object.keys(form).reduce((acc, key) => {
-      const [indexPrefix, ...restArray] = key.split("_");
-      const componentName = restArray.join("_");
+      const [indexPrefix, ...restArray] = key.split('_');
+      const componentName = restArray.join('_');
       if (!acc[indexPrefix]) {
         acc[indexPrefix] = {};
       }
@@ -46,7 +46,7 @@ export const TupleArray = ({ abiTupleParameter, setParentForm, parentStateObject
 
     if (depth > 1) {
       argsArray = argsArray.map(args => {
-        return args[abiTupleParameter.components[0].name || "tuple"];
+        return args[abiTupleParameter.components[0].name || 'tuple'];
       });
     }
 
@@ -65,11 +65,11 @@ export const TupleArray = ({ abiTupleParameter, setParentForm, parentStateObject
         const newForm = { ...form };
         abiTupleParameter.components.forEach((component, componentIndex) => {
           const key = getFunctionInputKey(
-            `${newAdditionalInputs.length - 1}_${abiTupleParameter.name || "tuple"}`,
+            `${newAdditionalInputs.length - 1}_${abiTupleParameter.name || 'tuple'}`,
             component,
             componentIndex,
           );
-          newForm[key] = "";
+          newForm[key] = '';
         });
         return newForm;
       });
@@ -84,7 +84,7 @@ export const TupleArray = ({ abiTupleParameter, setParentForm, parentStateObject
       const newForm = { ...form };
       abiTupleParameter.components.forEach((component, componentIndex) => {
         const key = getFunctionInputKey(
-          `${additionalInputs.length - 1}_${abiTupleParameter.name || "tuple"}`,
+          `${additionalInputs.length - 1}_${abiTupleParameter.name || 'tuple'}`,
           component,
           componentIndex,
         );
@@ -111,7 +111,7 @@ export const TupleArray = ({ abiTupleParameter, setParentForm, parentStateObject
               <div className="space-y-4">
                 {additionalInput.map((param, index) => {
                   const key = getFunctionInputKey(
-                    `${additionalIndex}_${abiTupleParameter.name || "tuple"}`,
+                    `${additionalIndex}_${abiTupleParameter.name || 'tuple'}`,
                     param,
                     index,
                   );

@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import NProgress from "nprogress";
+import { useEffect } from 'react';
+import NProgress from 'nprogress';
 
 type PushStateInput = [data: any, unused: string, url?: string | URL | null | undefined];
 
 export function ProgressBar() {
-  const height = "3px";
-  const color = "#2299dd";
+  const height = '3px';
+  const color = '#2299dd';
 
   const styles = (
     <style>
@@ -53,8 +53,8 @@ export function ProgressBar() {
     };
 
     const handleMutation: MutationCallback = () => {
-      const anchorElements = document.querySelectorAll("a");
-      anchorElements.forEach(anchor => anchor.addEventListener("click", handleAnchorClick));
+      const anchorElements = document.querySelectorAll('a');
+      anchorElements.forEach(anchor => anchor.addEventListener('click', handleAnchorClick));
     };
 
     const mutationObserver = new MutationObserver(handleMutation);

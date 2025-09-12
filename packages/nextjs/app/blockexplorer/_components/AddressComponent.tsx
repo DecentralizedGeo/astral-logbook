@@ -1,6 +1,6 @@
-import { BackButton } from "./BackButton";
-import { ContractTabs } from "./ContractTabs";
-import { Address, Balance } from "~~/components/scaffold-eth";
+import { BackButton } from './BackButton';
+import { ContractTabs } from './ContractTabs';
+import { Address, Balance } from '~~/components/scaffold-eth';
 
 export const AddressComponent = ({
   address,

@@ -1,6 +1,6 @@
-import { Abi, AbiFunction } from "abitype";
-import { ReadOnlyFunctionForm } from "~~/app/debug/_components/contract";
-import { Contract, ContractName, GenericContract, InheritedFunctions } from "~~/utils/scaffold-eth/contract";
+import { Abi, AbiFunction } from 'abitype';
+import { ReadOnlyFunctionForm } from '~~/app/debug/_components/contract';
+import { Contract, ContractName, GenericContract, InheritedFunctions } from '~~/utils/scaffold-eth/contract';
 
 export const ContractReadMethods = ({ deployedContractData }: { deployedContractData: Contract<ContractName> }) => {
   if (!deployedContractData) {
@@ -8,11 +8,11 @@ export const ContractReadMethods = ({ deployedContractData }: { deployedContract
   }
 
   const functionsToDisplay = (
-    ((deployedContractData.abi || []) as Abi).filter(part => part.type === "function") as AbiFunction[]
+    ((deployedContractData.abi || []) as Abi).filter(part => part.type === 'function') as AbiFunction[]
   )
     .filter(fn => {
       const isQueryableWithParams =
-        (fn.stateMutability === "view" || fn.stateMutability === "pure") && fn.inputs.length > 0;
+        (fn.stateMutability === 'view' || fn.stateMutability === 'pure') && fn.inputs.length > 0;
       return isQueryableWithParams;
     })
     .map(fn => {

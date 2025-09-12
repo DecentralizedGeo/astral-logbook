@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Dispatch, SetStateAction } from "react";
-import { Tuple } from "./Tuple";
-import { TupleArray } from "./TupleArray";
-import { AbiParameter } from "abitype";
+import { Dispatch, SetStateAction } from 'react';
+import { Tuple } from './Tuple';
+import { TupleArray } from './TupleArray';
+import { AbiParameter } from 'abitype';
 import {
   AddressInput,
   Bytes32Input,
@@ -11,8 +11,8 @@ import {
   InputBase,
   IntegerInput,
   IntegerVariant,
-} from "~~/components/scaffold-eth";
-import { AbiParameterTuple } from "~~/utils/scaffold-eth/contract";
+} from '~~/components/scaffold-eth';
+import { AbiParameterTuple } from '~~/utils/scaffold-eth/contract';
 
 type ContractInputProps = {
   setForm: Dispatch<SetStateAction<Record<string, any>>>;
@@ -36,15 +36,15 @@ export const ContractInput = ({ setForm, form, stateObjectKey, paramType }: Cont
 
   const renderInput = () => {
     switch (paramType.type) {
-      case "address":
+      case 'address':
         return <AddressInput {...inputProps} />;
-      case "bytes32":
+      case 'bytes32':
         return <Bytes32Input {...inputProps} />;
-      case "bytes":
+      case 'bytes':
         return <BytesInput {...inputProps} />;
-      case "string":
+      case 'string':
         return <InputBase {...inputProps} />;
-      case "tuple":
+      case 'tuple':
         return (
           <Tuple
             setParentForm={setForm}
@@ -55,9 +55,9 @@ export const ContractInput = ({ setForm, form, stateObjectKey, paramType }: Cont
         );
       default:
         // Handling 'int' types and 'tuple[]' types
-        if (paramType.type.includes("int") && !paramType.type.includes("[")) {
+        if (paramType.type.includes('int') && !paramType.type.includes('[')) {
           return <IntegerInput {...inputProps} variant={paramType.type as IntegerVariant} />;
-        } else if (paramType.type.startsWith("tuple[")) {
+        } else if (paramType.type.startsWith('tuple[')) {
           return (
             <TupleArray
               setParentForm={setForm}

@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import type { NextPage } from "next";
-import { Hash, Transaction, TransactionReceipt, formatEther, formatUnits } from "viem";
-import { hardhat } from "viem/chains";
-import { usePublicClient } from "wagmi";
-import { Address } from "~~/components/scaffold-eth";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
-import { decodeTransactionData, getFunctionDetails } from "~~/utils/scaffold-eth";
-import { replacer } from "~~/utils/scaffold-eth/common";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type { NextPage } from 'next';
+import { Hash, Transaction, TransactionReceipt, formatEther, formatUnits } from 'viem';
+import { hardhat } from 'viem/chains';
+import { usePublicClient } from 'wagmi';
+import { Address } from '~~/components/scaffold-eth';
+import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork';
+import { decodeTransactionData, getFunctionDetails } from '~~/utils/scaffold-eth';
+import { replacer } from '~~/utils/scaffold-eth/common';
 
 type PageProps = {
   params: { txHash?: Hash };
@@ -49,7 +49,7 @@ const TransactionPage: NextPage<PageProps> = ({ params }: PageProps) => {
       </button>
       {transaction ? (
         <div className="overflow-x-auto">
-          <h2 className="text-3xl font-bold mb-4 text-center text-primary-content">Transaction Details</h2>{" "}
+          <h2 className="text-3xl font-bold mb-4 text-center text-primary-content">Transaction Details</h2>{' '}
           <table className="table rounded-lg bg-base-100 w-full shadow-lg md:table-lg table-md">
             <tbody>
               <tr>
@@ -101,8 +101,8 @@ const TransactionPage: NextPage<PageProps> = ({ params }: PageProps) => {
                 </td>
                 <td>
                   <div className="w-full md:max-w-[600px] lg:max-w-[800px] overflow-x-auto whitespace-nowrap">
-                    {functionCalled === "0x" ? (
-                      "This transaction did not call any function."
+                    {functionCalled === '0x' ? (
+                      'This transaction did not call any function.'
                     ) : (
                       <>
                         <span className="mr-2">{getFunctionDetails(transaction)}</span>

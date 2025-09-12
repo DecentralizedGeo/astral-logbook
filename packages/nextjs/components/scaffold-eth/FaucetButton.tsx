@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { createWalletClient, http, parseEther } from "viem";
-import { hardhat } from "viem/chains";
-import { useAccount, useBlockNumber } from "wagmi";
-import { useBalance } from "wagmi";
-import { BanknotesIcon } from "@heroicons/react/24/outline";
-import { useTransactor } from "~~/hooks/scaffold-eth";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { createWalletClient, http, parseEther } from 'viem';
+import { hardhat } from 'viem/chains';
+import { useAccount, useBlockNumber } from 'wagmi';
+import { useBalance } from 'wagmi';
+import { BanknotesIcon } from '@heroicons/react/24/outline';
+import { useTransactor } from '~~/hooks/scaffold-eth';
+import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork';
 
 // Number of ETH faucet sends to an address
-const NUM_OF_ETH = "1";
-const FAUCET_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+const NUM_OF_ETH = '1';
+const FAUCET_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
 const localWalletClient = createWalletClient({
   chain: hardhat,
@@ -52,7 +52,7 @@ export const FaucetButton = () => {
       });
       setLoading(false);
     } catch (error) {
-      console.error("⚡️ ~ file: FaucetButton.tsx:sendETH ~ error", error);
+      console.error('⚡️ ~ file: FaucetButton.tsx:sendETH ~ error', error);
       setLoading(false);
     }
   };
@@ -68,8 +68,8 @@ export const FaucetButton = () => {
     <div
       className={
         !isBalanceZero
-          ? "ml-1"
-          : "ml-1 tooltip tooltip-bottom tooltip-secondary tooltip-open font-bold before:left-auto before:transform-none before:content-[attr(data-tip)] before:right-0"
+          ? 'ml-1'
+          : 'ml-1 tooltip tooltip-bottom tooltip-secondary tooltip-open font-bold before:left-auto before:transform-none before:content-[attr(data-tip)] before:right-0'
       }
       data-tip="Grab funds from faucet"
     >

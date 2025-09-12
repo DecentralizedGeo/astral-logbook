@@ -1,6 +1,6 @@
-import { Abi, AbiFunction } from "abitype";
-import { WriteOnlyFunctionForm } from "~~/app/debug/_components/contract";
-import { Contract, ContractName, GenericContract, InheritedFunctions } from "~~/utils/scaffold-eth/contract";
+import { Abi, AbiFunction } from 'abitype';
+import { WriteOnlyFunctionForm } from '~~/app/debug/_components/contract';
+import { Contract, ContractName, GenericContract, InheritedFunctions } from '~~/utils/scaffold-eth/contract';
 
 export const ContractWriteMethods = ({
   onChange,
@@ -14,10 +14,10 @@ export const ContractWriteMethods = ({
   }
 
   const functionsToDisplay = (
-    (deployedContractData.abi as Abi).filter(part => part.type === "function") as AbiFunction[]
+    (deployedContractData.abi as Abi).filter(part => part.type === 'function') as AbiFunction[]
   )
     .filter(fn => {
-      const isWriteableFunction = fn.stateMutability !== "view" && fn.stateMutability !== "pure";
+      const isWriteableFunction = fn.stateMutability !== 'view' && fn.stateMutability !== 'pure';
       return isWriteableFunction;
     })
     .map(fn => {

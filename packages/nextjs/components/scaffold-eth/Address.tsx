@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { CopyToClipboard } from "react-copy-to-clipboard";
-import { Address as AddressType, getAddress, isAddress } from "viem";
-import { hardhat } from "viem/chains";
-import { normalize } from "viem/ens";
-import { useEnsAvatar, useEnsName } from "wagmi";
-import { CheckCircleIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
-import { BlockieAvatar } from "~~/components/scaffold-eth";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
-import { getBlockExplorerAddressLink } from "~~/utils/scaffold-eth";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { Address as AddressType, getAddress, isAddress } from 'viem';
+import { hardhat } from 'viem/chains';
+import { normalize } from 'viem/ens';
+import { useEnsAvatar, useEnsName } from 'wagmi';
+import { CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { BlockieAvatar } from '~~/components/scaffold-eth';
+import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork';
+import { getBlockExplorerAddressLink } from '~~/utils/scaffold-eth';
 
 type AddressProps = {
   address?: AddressType;
   disableAddressLink?: boolean;
-  format?: "short" | "long";
-  size?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl";
+  format?: 'short' | 'long';
+  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
 };
 
 const blockieSizeMap = {
@@ -25,14 +25,14 @@ const blockieSizeMap = {
   base: 8,
   lg: 9,
   xl: 10,
-  "2xl": 12,
-  "3xl": 15,
+  '2xl': 12,
+  '3xl': 15,
 };
 
 /**
  * Displays an address (or ENS) with a Blockie image and option to copy address.
  */
-export const Address = ({ address, disableAddressLink, format, size = "base" }: AddressProps) => {
+export const Address = ({ address, disableAddressLink, format, size = 'base' }: AddressProps) => {
   const [ens, setEns] = useState<string | null>();
   const [ensAvatar, setEnsAvatar] = useState<string | null>();
   const [addressCopied, setAddressCopied] = useState(false);
@@ -44,7 +44,7 @@ export const Address = ({ address, disableAddressLink, format, size = "base" }: 
     address: checkSumAddress,
     chainId: 1,
     query: {
-      enabled: isAddress(checkSumAddress ?? ""),
+      enabled: isAddress(checkSumAddress ?? ''),
     },
   });
   const { data: fetchedEnsAvatar } = useEnsAvatar({
@@ -82,11 +82,11 @@ export const Address = ({ address, disableAddressLink, format, size = "base" }: 
   }
 
   const blockExplorerAddressLink = getBlockExplorerAddressLink(targetNetwork, checkSumAddress);
-  let displayAddress = checkSumAddress?.slice(0, 6) + "..." + checkSumAddress?.slice(-4);
+  let displayAddress = checkSumAddress?.slice(0, 6) + '...' + checkSumAddress?.slice(-4);
 
   if (ens) {
     displayAddress = ens;
-  } else if (format === "long") {
+  } else if (format === 'long') {
     displayAddress = checkSumAddress;
   }
 
@@ -96,7 +96,7 @@ export const Address = ({ address, disableAddressLink, format, size = "base" }: 
         <BlockieAvatar
           address={checkSumAddress}
           ensImage={ensAvatar}
-          size={(blockieSizeMap[size] * 24) / blockieSizeMap["base"]}
+          size={(blockieSizeMap[size] * 24) / blockieSizeMap['base']}
         />
       </div>
       {disableAddressLink ? (

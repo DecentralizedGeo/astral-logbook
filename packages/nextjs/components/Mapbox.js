@@ -1,13 +1,13 @@
 // eslint-disable-line import/no-webpack-loader-syntax
-import React, { useEffect, useRef } from "react";
-import mapboxgl from "!mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import React, { useEffect, useRef } from 'react';
+import mapboxgl from '!mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 export default function Mapbox({
   setIsControlsActive = bool => bool, // Activates "Record" button on map click
-  height = "70vh", // Default height of map container
+  height = '70vh', // Default height of map container
   setLatLng = arr => arr, // Set state variable for lat,lon from map tap
   lngLat = [], // lat,lon state variable, set from map tap
   isCheckInActive = false, // set to true after clicking "Record" button. Resizes map
@@ -19,14 +19,14 @@ export default function Mapbox({
   const markersRef = useRef([]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const defaultMapView = {
-    name: "Europe",
+    name: 'Europe',
     center: { lat: 50.1109, lng: 8.6821 },
     zoom: 5,
   };
 
   // Loading state side effect
   useEffect(() => {
-    console.log("[🧪 DEBUG](loading useEffect)");
+    console.log('[🧪 DEBUG](loading useEffect)');
     setIsLoading(false);
   }, [setIsLoading]);
 
@@ -36,7 +36,7 @@ export default function Mapbox({
     if (!map.current) {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/standard",
+        style: 'mapbox://styles/mapbox/standard',
         center: [defaultMapView.center.lng, defaultMapView.center.lat],
         zoom: defaultMapView.zoom,
         attributionControl: false,
@@ -49,11 +49,11 @@ export default function Mapbox({
       markersRef.current = [];
 
       // Set state variables
-      console.log("📍[Mapbox] Attestation coordinates:", latLngAttestation[0], latLngAttestation[1]);
+      console.log('📍[Mapbox] Attestation coordinates:', latLngAttestation[0], latLngAttestation[1]);
 
       // Add a pin to the map
-      const el = document.createElement("div");
-      el.className = "marker bg-primary";
+      const el = document.createElement('div');
+      el.className = 'marker bg-primary';
       var newMarker = new mapboxgl.Marker(el)
         .setLngLat([latLngAttestation[0], latLngAttestation[1]])
         .addTo(map.current);
@@ -75,7 +75,7 @@ export default function Mapbox({
     //   setZoom(map.current.getZoom().toFixed(2));
     // });
 
-    map.current?.on("click", e => {
+    map.current?.on('click', e => {
       if (latLngAttestation.length > 0) {
         return;
       }
@@ -89,11 +89,11 @@ export default function Mapbox({
       // setLat(latLngAttestation.length > 0 ? latLngAttestation[1] : e.lngLat.lat);
 
       // Set state on parent page (to pass on checkin)
-      console.log("📍[setLngLat] State var set at:", e.lngLat.lng, e.lngLat.lat);
+      console.log('📍[setLngLat] State var set at:', e.lngLat.lng, e.lngLat.lat);
       setLatLng([parseFloat(e.lngLat.lng.toPrecision(6)), parseFloat(e.lngLat.lat.toPrecision(6))]); // trim precision
 
-      const el = document.createElement("div");
-      el.className = "marker bg-primary";
+      const el = document.createElement('div');
+      el.className = 'marker bg-primary';
       // Add a pin to the map
       var newMarker = new mapboxgl.Marker(el).setLngLat(e.lngLat).addTo(map.current);
 
@@ -116,23 +116,23 @@ export default function Mapbox({
 
   // Canvas resize side effect
   useEffect(() => {
-    var mapCanvas = document.getElementsByClassName("mapboxgl-canvas")[0];
+    var mapCanvas = document.getElementsByClassName('mapboxgl-canvas')[0];
     if (!map.current) {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/standard",
+        style: 'mapbox://styles/mapbox/standard',
         center: lngLat, // this should be latLng, i.e. the actual form variables ...
         // zoom: zoom,
       });
     }
 
     if (isCheckInActive) {
-      mapCanvas.style.height = "20vh";
-      map.current.style.height = "20vh";
-      mapContainer.current.style.height = "20vh";
+      mapCanvas.style.height = '20vh';
+      map.current.style.height = '20vh';
+      mapContainer.current.style.height = '20vh';
       map.current.resize(50);
     } else {
-      mapContainer.current.style.height = "80vh";
+      mapContainer.current.style.height = '80vh';
       map.current.resize();
     }
   }, [isCheckInActive, lngLat]);
