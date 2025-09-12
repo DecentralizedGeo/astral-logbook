@@ -19,9 +19,7 @@ const Register: NextPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isTxLoading, setIsTxLoading] = useState(false);
   const [isDisclaimer, setIsDisclaimer] = useState(true);
-  const { address, isConnected, status } = useAccount();
-
-  console.log('ACCOUNT!', address, isConnected, status);
+  const { address: _address, isConnected: _isConnected, status: _status } = useAccount();
 
   return (
     <>
