@@ -1,4 +1,3 @@
 {
-  "installCommand": "yarn --cwd ../.. install --frozen-lockfile",
-  "buildCommand": "yarn build && node -e \"require('fs').writeFileSync('.next/export-detail.json', '{}')\""
+  "installCommand": "yarn --cwd ../.. install --frozen-lockfile"
 }
