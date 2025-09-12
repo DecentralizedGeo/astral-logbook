@@ -204,17 +204,38 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
         },
       });
 
-      console.log("Submitted attestation");
+      console.log('Submitted attestation');
       const newAttestationUID = await tx?.wait();
-      console.log("Completed attestation submission");
-      
+      console.log('Completed attestation submission');
+
       router.push(`/attestation/uid/${newAttestationUID}`);
     } catch (err) {
       console.error('Error creating log entry:', err);
-      setError(err instanceof Error ? err.message : "Failed to create log entry");
+      setError(err instanceof Error ? err.message : 'Failed to create log entry');
     } finally {
       setIsSubmitting(false);
       setIsTxLoading(false);
+    }
+  };
+
+  // Validate selected file on change and show UI message
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileValidationError(null);
+    const f = e.target.files?.[0];
+    if (!f) return;
+
+    const state = useGlobalState.getState();
+    const activeService = state.activeService || state.availableServices.find(s => s.isAuthenticated) || state.availableServices[0];
+    const allowed = activeService?.allowedFileTypes ?? ['image/jpeg', 'image/png', 'image/gif'];
+    const maxSize = activeService?.maxFileSize ?? 10 * 1024 * 1024;
+
+    if (f.size > maxSize) {
+      setFileValidationError(`File too large. Max ${Math.round(maxSize / 1024 / 1024)} MB`);
+      return;
+    }
+    if (f.type && !allowed.includes(f.type)) {
+      setFileValidationError('Invalid file type. Allowed types: JPEG, PNG, GIF');
+      return;
     }
   };
 
@@ -277,20 +298,17 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
           <DocumentTextIcon className="h-5 w-5 text-primary" />
           <div className="w-full">
             <span className="text-sm text-gray-500 mb-1 block">Image (optional)</span>
-            <input
-              type="file"
-              className="file-input file-input-bordered w-full"
-              accept="image/*"
-            />
+            <input ref={fileInputRef} onChange={handleFileChange} type="file" className="file-input file-input-bordered w-full" accept="image/*" />
           </div>
         </label>
 
+        {fileValidationError && <p className="text-error text-sm">{fileValidationError}</p>}
         {error && <p className="text-error text-sm">{error}</p>}
 
         {/* Submit button */}
         <button
           type="submit"
-          className={`btn ${isConnected ? "btn-primary" : "btn-disabled"}`}
+          className={`btn ${isConnected ? 'btn-primary' : 'btn-disabled'}`}
           disabled={!isConnected || isSubmitting}
         >
           {isSubmitting ? (
