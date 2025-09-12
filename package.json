@@ -50,7 +50,6 @@
     "@apollo/client": "^3.10.3",
     "@ethereum-attestation-service/eas-sdk": "1.6.1",
     "@types/react-datepicker": "^6.2.0",
-    "@web3-storage/w3up-client": "^16.5.2",
     "date-fns": "^3.6.0",
     "graphql": "^16.8.1",
     "mapbox-gl": "^3.9.4",
