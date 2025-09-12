@@ -1,5 +1,5 @@
 {
-  "installCommand": "yarn install --frozen-lockfile",
-  "buildCommand": "yarn next:build",
-  "outputDirectory": "packages/nextjs/.next"
+  "buildCommand": "cd packages/nextjs && yarn build && node -e \"require('fs').writeFileSync('.next/export-detail.json', '{}')\"",
+  "outputDirectory": "packages/nextjs/.next",
+  "installCommand": "yarn install --frozen-lockfile"
 }
