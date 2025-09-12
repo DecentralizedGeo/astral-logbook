@@ -2,24 +2,93 @@
  * Form component for creating attestations
  * Handles user input, file uploads, and blockchain interactions
  */
+'use client';
 
-"use client";
-
-import React from "react";
-import { useRouter } from "next/navigation";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { ethers } from "ethers";
-import DatePicker from "react-datepicker";
-import { Config, UseChainIdParameters, useAccount, useChainId, useBalance } from "wagmi";
-import { ClockIcon, DocumentTextIcon, MapPinIcon } from "@heroicons/react/24/outline";
-import easConfig from "~~/EAS.config";
-import { IFormValues } from "~~/app/interface/interface";
-import { EASContext } from "~~/components/EasContextProvider";
-import { wagmiConfig } from "~~/services/web3/wagmiConfig";
-
+import React from 'react';
+import { useRouter } from 'next/navigation';
 // Import styles
-import "../styles/custom-datepicker.css";
-import "react-datepicker/dist/react-datepicker.css";
+import '../styles/custom-datepicker.css';
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+import { ethers } from 'ethers';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Config, UseChainIdParameters, useAccount, useBalance, useChainId } from 'wagmi';
+import { ClockIcon, DocumentTextIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import easConfig from '~~/EAS.config';
+import { IFormValues } from '~~/app/interface/interface';
+import { EASContext } from '~~/components/EasContextProvider';
+import { wagmiConfig } from '~~/services/web3/wagmiConfig';
+import { useGlobalState } from '~~/services/store/store';
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
 
 interface CheckinFormProps {
   lngLat: number[];
