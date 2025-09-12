@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { IFormValues } from "~~/app/interface/interface";
+import { useEffect, useRef, useState } from 'react';
+import { IFormValues } from '~~/app/interface/interface';
 
 export default function PinataUpload({
   //formValues,
@@ -14,7 +14,7 @@ export default function PinataUpload({
   const [cid, setCid] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || "https://gateway.pinata.cloud";
+  const GATEWAY_URL = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://gateway.pinata.cloud';
 
   const inputFile = useRef<HTMLInputElement>(null);
 
@@ -23,24 +23,24 @@ export default function PinataUpload({
       setUploading(true);
       setError(null);
       const data = new FormData();
-      data.set("file", fileToUpload);
-      console.log("[🧪 DEBUG](fileToUpload):", fileToUpload);
-      const res = await fetch("/api/files", {
-        method: "POST",
+      data.set('file', fileToUpload);
+      console.log('[🧪 DEBUG](fileToUpload):', fileToUpload);
+      const res = await fetch('/api/files', {
+        method: 'POST',
         body: data,
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || "Upload failed");
+        throw new Error(errorData.error || 'Upload failed');
       }
 
       const resData = await res.json();
-      console.log("[🧪 DEBUG](resData):", resData);
+      console.log('[🧪 DEBUG](resData):', resData);
       setCid(resData.IpfsHash);
     } catch (e) {
-      console.error("Error uploading file:", e);
-      setError(e.message || "Trouble uploading file");
+      console.error('Error uploading file:', e);
+      setError(e.message || 'Trouble uploading file');
     } finally {
       setUploading(false);
     }
@@ -55,16 +55,16 @@ export default function PinataUpload({
       const selectedFile = e.target.files[0];
 
       //check for allowed file types
-      const allowedTypes = ["image/jpeg", "image/png", "image/gif", "application/pdf"];
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
       if (!allowedTypes.includes(selectedFile.type)) {
-        setError("Invalid file type. Please select a JPEG, PNG, GIF, or PDF file");
+        setError('Invalid file type. Please select a JPEG, PNG, GIF, or PDF file');
         return;
       }
 
       //check for maximum file size
       const maxFileSize = 10 * 1024 * 1024; // 10 MB
       if (selectedFile.size > maxFileSize) {
-        setError("File size exceeds 10 MB limit. Please select a smaller file.");
+        setError('File size exceeds 10 MB limit. Please select a smaller file.');
         return;
       }
 
