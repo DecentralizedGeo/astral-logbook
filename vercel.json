@@ -1,5 +1,6 @@
 {
-  "buildCommand": "cd packages/nextjs && yarn build && node -e \"require('fs').writeFileSync('.next/export-detail.json', '{}')\"",
+  "buildCommand": "cd packages/nextjs && yarn build && node -e \"require('fs').mkdirSync('.next/export', { recursive: true }); require('fs').writeFileSync('.next/export-detail.json', '{}'); require('fs').writeFileSync('.next/export/404.html', '<!DOCTYPE html><html><head><title>404 - Page Not Found</title></head><body><h1>404 - Page Not Found</h1></body></html>');\"",
   "outputDirectory": "packages/nextjs/.next",
-  "installCommand": "yarn install --frozen-lockfile"
+  "installCommand": "yarn install --frozen-lockfile",
+  "framework": "nextjs"
 }
