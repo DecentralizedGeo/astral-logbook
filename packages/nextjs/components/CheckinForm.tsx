@@ -107,12 +107,14 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
     longitude: lngLat[0].toString(),
     latitude: lngLat[1].toString(),
     eventTimestamp: Math.floor(Date.now() / 1000),
-    data: "",
-    mediaType: [""],
-    mediaData: [""],
+    data: '',
+    mediaType: [''],
+    mediaData: [''],
   });
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
   const [error, setError] = React.useState<string | null>(null);
+  const [fileValidationError, setFileValidationError] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Update coordinates when map selection changes
@@ -143,7 +145,7 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
 
   // Gets schema UID for current chain
   const getSchemaUID = () => {
-    if (!chainId) throw new Error("Chain ID is not available");
+    if (!chainId) throw new Error('Chain ID is not available');
     const chainConfig = easConfig.chains[chainId.toString() as keyof typeof easConfig.chains];
     if (!chainConfig?.schemaUID) throw new Error(`No schema UID for chain ID ${chainId}`);
     return chainConfig.schemaUID;
@@ -160,28 +162,30 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
 
     try {
       // Check balance before proceeding
-      console.log("Checking balance...");
+      console.log('Checking balance...');
       if (!balance || balance.value === 0n) {
-        throw new Error("Insufficient balance to create attestation");
+        throw new Error('Insufficient balance to create attestation');
       }
-      console.log("Completed checking balance.");
+      console.log('Completed checking balance.');
 
       if (!isReady || !eas) {
-        throw new Error("EAS is not ready");
+        throw new Error('EAS is not ready');
       }
 
       // Upload file if provided
-      console.log("Uploading file...");
+      console.log('Uploading file...');
       const fileInput = (event.target as HTMLFormElement).querySelector('input[type="file"]') as HTMLInputElement;
       const { fileCid, fileType } = await handleFileUpload(fileInput);
-      console.log("Completed uploading file.");
+      console.log('Completed uploading file.');
 
       // Create and submit attestation
-      console.log("Creating attestation...");
+      console.log('Creating attestation...');
       const schemaUID = getSchemaUID();
       // Make sure the schema string is valid
-      const schemaString = easConfig.schema.rawString || 'uint256 eventTimestamp, string srs, string locationType, string location, string[] recipeType, bytes[] recipePayload, string[] mediaType, string[] mediaData, string memo';
-      
+      const schemaString =
+        easConfig.schema.rawString ||
+        'uint256 eventTimestamp, string srs, string locationType, string location, string[] recipeType, bytes[] recipePayload, string[] mediaType, string[] mediaData, string memo';
+
       const encodedData = new SchemaEncoder(schemaString).encodeData([
         { name: 'eventTimestamp', value: formValues.eventTimestamp, type: 'uint256' },
         { name: 'srs', value: 'EPSG:4326', type: 'string' },
@@ -191,7 +195,7 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
         { name: 'recipePayload', value: [ethers.toUtf8Bytes('empty')], type: 'bytes[]' },
         { name: 'mediaType', value: fileType ? [fileType] : ['text/plain'], type: 'string[]' },
         { name: 'mediaData', value: [fileCid || ''], type: 'string[]' },
-        { name: 'memo', value: formValues.data || '', type: 'string' }
+        { name: 'memo', value: formValues.data || '', type: 'string' },
       ]);
 
       const tx = await eas.attest({
