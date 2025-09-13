@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPendingVerification, removePendingVerification, setVerifiedAccount, getVerifiedAccount, setPendingVerification } from '../shared';
+import {
+  getPendingVerification,
+  getVerifiedAccount,
+  removePendingVerification,
+  setPendingVerification,
+  setVerifiedAccount,
+} from '../shared';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +35,23 @@ export async function POST(request: NextRequest) {
 
     // Create Storacha client using dynamic import
     const { create: createStorachaClient } = await import('@storacha/client');
-    const client = await createStorachaClient();
+
+    // For serverless environments, we need to handle the store configuration carefully
+    let client;
+    try {
+      // Try to set environment variable to use /tmp directory
+      if (typeof process !== 'undefined' && process.env) {
+        process.env.XDG_CONFIG_HOME = '/tmp';
+        process.env.HOME = '/tmp';
+      }
+      client = await createStorachaClient();
+    } catch (error) {
+      console.warn(
+        'Failed to create client with default store, this might be due to filesystem restrictions in serverless environment:',
+        error,
+      );
+      throw error;
+    }
 
     // Start login process
     const loginPromise = client.login(email);

@@ -4,9 +4,9 @@ export class StorachaService extends StorageService {
   id = 'storacha';
   name = 'Storacha';
   icon = '/storacha-logo.svg';
-  
+
   private config: StorageServiceConfig;
-  
+
   constructor(config: StorageServiceConfig = {}) {
     super();
     this.config = {
