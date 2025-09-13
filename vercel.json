@@ -4,7 +4,7 @@
   "installCommand": "yarn install --frozen-lockfile",
   "framework": "nextjs",
   "functions": {
-    "/api/storage/storacha/files": {
+    "packages/nextjs/app/api/storage/storacha/files": {
       "maxDuration": 60
     }
   }
