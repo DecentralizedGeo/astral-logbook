@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 const Home: React.FC = () => {
   return (
@@ -14,15 +15,15 @@ const Home: React.FC = () => {
       <h1>Welcome to the Astral Logbook ✨</h1>
       <p>This is our beta landing page.</p>
 
-      <a href="/register" style={{ color: '#009900', textDecoration: 'underline' }}>
+      <Link href="/register" style={{ color: '#009900', textDecoration: 'underline' }}>
         Register a new entry →
-      </a>
+      </Link>
 
       <br />
 
-      <a href="/entries" style={{ color: '#009900', textDecoration: 'underline' }}>
+      <Link href="/entries" style={{ color: '#009900', textDecoration: 'underline' }}>
         View past entries →
-      </a>
+      </Link>
 
       <br />
 
