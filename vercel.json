@@ -2,5 +2,10 @@
   "buildCommand": "cd packages/nextjs && yarn build",
   "outputDirectory": "packages/nextjs/.next",
   "installCommand": "yarn install --frozen-lockfile",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "functions": {
+    "/api/storage/storacha/files": {
+      "maxDuration": 60
+    }
+  }
 }
