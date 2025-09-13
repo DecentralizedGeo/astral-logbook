@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPendingVerification, removePendingVerification, setVerifiedAccount, getVerifiedAccount, setPendingVerification } from '../shared';
-import { create as createStorachaClient } from '@storacha/client';
-
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +27,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create Storacha client
+    // Create Storacha client using dynamic import
+    const { create: createStorachaClient } = await import('@storacha/client');
     const client = await createStorachaClient();
 
     // Start login process
