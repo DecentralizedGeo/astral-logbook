@@ -19,6 +19,12 @@ import { IFormValues } from '~~/app/interface/interface';
 import { EASContext } from '~~/components/EasContextProvider';
 import { wagmiConfig } from '~~/services/web3/wagmiConfig';
 import { useGlobalState } from '~~/services/store/store';
+import { DEFAULT_MAX_FILE_SIZE_BYTES, ALLOWED_FILE_TYPES } from '~~/config/storage';
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
 
 /**
  * Form component for creating attestations
@@ -230,8 +236,8 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
 
     const state = useGlobalState.getState();
     const activeService = state.activeService || state.availableServices.find(s => s.isAuthenticated) || state.availableServices[0];
-    const allowed = activeService?.allowedFileTypes ?? ['image/jpeg', 'image/png', 'image/gif'];
-    const maxSize = activeService?.maxFileSize ?? 10 * 1024 * 1024;
+    const allowed = activeService?.allowedFileTypes ?? ALLOWED_FILE_TYPES;
+    const maxSize = activeService?.maxFileSize ?? DEFAULT_MAX_FILE_SIZE_BYTES;
 
     if (f.size > maxSize) {
       setFileValidationError(`File too large. Max ${Math.round(maxSize / 1024 / 1024)} MB`);
@@ -346,8 +352,8 @@ async function handleFileUpload(fileInput: HTMLInputElement): Promise<{ fileCid:
   }
 
   const uploadUrl = activeService.uploadEndpoint || `/api/storage/${activeService.id}/files`;
-  const allowed = activeService.allowedFileTypes ?? ['image/jpeg', 'image/png', 'image/gif'];
-  const maxSize = activeService.maxFileSize ?? 10 * 1024 * 1024;
+  const allowed = activeService.allowedFileTypes ?? ALLOWED_FILE_TYPES;
+  const maxSize = activeService.maxFileSize ?? DEFAULT_MAX_FILE_SIZE_BYTES;
 
   // Client-side validation
   if (file.size > maxSize) throw new Error(`File too large. Max ${Math.round(maxSize / 1024 / 1024)} MB`);
