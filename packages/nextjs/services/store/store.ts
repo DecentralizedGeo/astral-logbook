@@ -1,6 +1,7 @@
 import create from "zustand";
 import scaffoldConfig from "~~/scaffold.config";
 import { ChainWithAttributes } from "~~/utils/scaffold-eth";
+import { DEFAULT_MAX_FILE_SIZE_BYTES, ALLOWED_FILE_TYPES } from '~~/config/storage';
 
 /**
  * Zustand Store
@@ -157,8 +158,8 @@ export const useGlobalState = create<GlobalState & StorageStore>((set, get) => (
         uploadEndpoint: '/api/storage/storacha/files',
         requiresAuth: true,
         authFields: ['email', 'spaceDid'],
-        allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif'],
-        maxFileSize: 10 * 1024 * 1024, // 10 MB
+        allowedFileTypes: ALLOWED_FILE_TYPES,
+        maxFileSize: DEFAULT_MAX_FILE_SIZE_BYTES, // 10 MB
       },
       // Future storage services can be added here
     ];
