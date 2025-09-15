@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getVerifiedAccount } from '../shared';
+import { ALLOWED_FILE_TYPES, DEFAULT_MAX_FILE_SIZE_BYTES } from '~~/config/storage';
 
 export const runtime = 'nodejs';
 
 // Validation constants (match /api/files behavior)
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
+const MAX_FILE_SIZE = DEFAULT_MAX_FILE_SIZE_BYTES; // 10 MB default
+const ALLOWED_FILE_TYPES_LOCAL = ALLOWED_FILE_TYPES;
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
       if (size > MAX_FILE_SIZE) {
         return NextResponse.json({ error: `File size exceeds ${MAX_FILE_SIZE} bytes limit` }, { status: 400 });
       }
-      if (type && !ALLOWED_FILE_TYPES.includes(type)) {
+      if (type && !ALLOWED_FILE_TYPES_LOCAL.includes(type)) {
         return NextResponse.json({ error: 'Invalid file type. Only JPEG, PNG and GIF are allowed' }, { status: 400 });
       }
     } catch (e) {
@@ -61,10 +62,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, cid: result.toString(), message: 'File uploaded successfully' });
     } catch (err) {
       console.error('Storacha file upload failed:', err);
-      return NextResponse.json({ error: 'Failed to upload file', message: err instanceof Error ? err.message : String(err) }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to upload file', message: err instanceof Error ? err.message : String(err) },
+        { status: 500 },
+      );
     }
   } catch (err) {
     console.error('Storacha files route error:', err);
-    return NextResponse.json({ error: 'Internal server error', message: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error', message: err instanceof Error ? err.message : String(err) },
+      { status: 500 },
+    );
   }
 }
