@@ -96,6 +96,14 @@ import parseLocation from '~~/utils/parseLocation';
 // Formats a CID into a valid IPFS gateway URL
 const formatIpfsUrl = (cid: string) => `https://${cid}.ipfs.w3s.link`;
 
+// Short display for long IPFS CIDs (shows start and end so it doesn't stretch layout)
+const shortIpfsDisplay = (cid: string) => {
+  if (!cid) return '';
+  const start = cid.slice(0, 8);
+  const end = cid.slice(-6);
+  return `https://${start}...${end}.ipfs.w3s.link/`;
+};
+
 const AttestationPage: NextPage = () => {
   const params = useParams();
   const { eas } = useContext(EASContext);
@@ -210,7 +218,7 @@ const AttestationPage: NextPage = () => {
                     <td>
                       <MapPinIcon className="h-5 w-5 text-primary flex-shrink-0" />
                     </td>
-                    <td className="flex flex-col sm:flex-row">
+                    <td className="flex flex-col sm:flex-row min-w-0">
                       <div className="sm:mr-4">
                         <strong className="text-sm">Lon: </strong>
                         {attestationData
@@ -231,7 +239,7 @@ const AttestationPage: NextPage = () => {
                     <td>
                       <ClockIcon className="h-5 w-5 text-primary" />
                     </td>
-                    <td>
+                    <td className="min-w-0">
                       {attestationData
                         ? hexToDate((attestationData.eventTimestamp.value.value as unknown as bigint).toString(16))
                         : 'fetching'}
@@ -244,7 +252,11 @@ const AttestationPage: NextPage = () => {
                       <td>
                         <DocumentTextIcon className="h-5 w-5 text-primary" />
                       </td>
-                      <td>{attestationData.memo.value.value}</td>
+                      <td className="min-w-0">
+                        {typeof attestationData.memo.value.value === 'string'
+                          ? attestationData.memo.value.value
+                          : JSON.stringify(attestationData.memo.value.value)}
+                      </td>
                     </tr>
                   )}
 
@@ -253,7 +265,7 @@ const AttestationPage: NextPage = () => {
                     <td className="text-sm">
                       <strong>From:</strong>
                     </td>
-                    <td>{attestationData?.attester || 'fetching'}</td>
+                    <td className="min-w-0">{attestationData?.attester || 'fetching'}</td>
                   </tr>
 
                   {/* Media */}
@@ -262,7 +274,19 @@ const AttestationPage: NextPage = () => {
                       <td className="text-sm">
                         <strong>Media:</strong>
                       </td>
-                      <td>{formatIpfsUrl(mediaData[0])}</td>
+                      <td className="min-w-0">
+                        <a
+                          href={formatIpfsUrl(mediaData[0])}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline break-words"
+                          title={formatIpfsUrl(mediaData[0])}
+                        >
+                          {/* Use the function below if the the URL needs to be shortened for display purposes  */}
+                          {/* {shortIpfsDisplay(mediaData[0])}  */}
+                          {formatIpfsUrl(mediaData[0])}
+                        </a>
+                      </td>
                     </tr>
                   )}
 
