@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useLocalStorage } from "usehooks-ts";
-import { BarsArrowUpIcon } from "@heroicons/react/20/solid";
-import { ContractUI } from "~~/app/debug/_components/contract";
-import { ContractName } from "~~/utils/scaffold-eth/contract";
-import { getAllContracts } from "~~/utils/scaffold-eth/contractsData";
+import { useEffect } from 'react';
+import { useLocalStorage } from 'usehooks-ts';
+import { BarsArrowUpIcon } from '@heroicons/react/20/solid';
+import { ContractUI } from '~~/app/debug/_components/contract';
+import { ContractName } from '~~/utils/scaffold-eth/contract';
+import { getAllContracts } from '~~/utils/scaffold-eth/contractsData';
 
-const selectedContractStorageKey = "scaffoldEth2.selectedContract";
+const selectedContractStorageKey = 'scaffoldEth2.selectedContract';
 const contractsData = getAllContracts();
 const contractNames = Object.keys(contractsData) as ContractName[];
 
@@ -36,8 +36,8 @@ export function DebugContracts() {
                 <button
                   className={`btn btn-secondary btn-sm font-light hover:border-transparent ${
                     contractName === selectedContract
-                      ? "bg-base-300 hover:bg-base-300 no-animation"
-                      : "bg-base-100 hover:bg-secondary"
+                      ? 'bg-base-300 hover:bg-base-300 no-animation'
+                      : 'bg-base-100 hover:bg-secondary'
                   }`}
                   key={contractName}
                   onClick={() => setSelectedContract(contractName)}
@@ -56,7 +56,7 @@ export function DebugContracts() {
             <ContractUI
               key={contractName}
               contractName={contractName}
-              className={contractName === selectedContract ? "" : "hidden"}
+              className={contractName === selectedContract ? '' : 'hidden'}
             />
           ))}
         </>

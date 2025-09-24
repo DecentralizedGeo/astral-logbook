@@ -2,10 +2,59 @@
  * Page component for displaying user entries
  * Route: /entries
  */
-
-"use client";
+'use client';
 
 import EntriesPage from '../../components/EntriesPage';
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
+
+/**
+ * Page component for displaying user entries
+ * Route: /entries
+ */
 
 // Directly re-exports the EntriesPage component
 export default EntriesPage;

@@ -2,24 +2,99 @@
  * Form component for creating attestations
  * Handles user input, file uploads, and blockchain interactions
  */
+'use client';
 
-"use client";
-
-import React from "react";
-import { useRouter } from "next/navigation";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { ethers } from "ethers";
-import DatePicker from "react-datepicker";
-import { Config, UseChainIdParameters, useAccount, useChainId, useBalance } from "wagmi";
-import { ClockIcon, DocumentTextIcon, MapPinIcon } from "@heroicons/react/24/outline";
-import easConfig from "~~/EAS.config";
-import { IFormValues } from "~~/app/interface/interface";
-import { EASContext } from "~~/components/EasContextProvider";
-import { wagmiConfig } from "~~/services/web3/wagmiConfig";
-
+import React from 'react';
+import { useRouter } from 'next/navigation';
 // Import styles
-import "../styles/custom-datepicker.css";
-import "react-datepicker/dist/react-datepicker.css";
+import '../styles/custom-datepicker.css';
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+import { ethers } from 'ethers';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Config, UseChainIdParameters, useAccount, useBalance, useChainId } from 'wagmi';
+import { ClockIcon, DocumentTextIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import easConfig from '~~/EAS.config';
+import { IFormValues } from '~~/app/interface/interface';
+import { EASContext } from '~~/components/EasContextProvider';
+import { wagmiConfig } from '~~/services/web3/wagmiConfig';
+import { useGlobalState } from '~~/services/store/store';
+import { DEFAULT_MAX_FILE_SIZE_BYTES, ALLOWED_FILE_TYPES } from '~~/config/storage';
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
+
+/**
+ * Form component for creating attestations
+ * Handles user input, file uploads, and blockchain interactions
+ */
 
 interface CheckinFormProps {
   lngLat: number[];
@@ -38,12 +113,14 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
     longitude: lngLat[0].toString(),
     latitude: lngLat[1].toString(),
     eventTimestamp: Math.floor(Date.now() / 1000),
-    data: "",
-    mediaType: [""],
-    mediaData: [""],
+    data: '',
+    mediaType: [''],
+    mediaData: [''],
   });
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
   const [error, setError] = React.useState<string | null>(null);
+  const [fileValidationError, setFileValidationError] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Update coordinates when map selection changes
@@ -74,7 +151,7 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
 
   // Gets schema UID for current chain
   const getSchemaUID = () => {
-    if (!chainId) throw new Error("Chain ID is not available");
+    if (!chainId) throw new Error('Chain ID is not available');
     const chainConfig = easConfig.chains[chainId.toString() as keyof typeof easConfig.chains];
     if (!chainConfig?.schemaUID) throw new Error(`No schema UID for chain ID ${chainId}`);
     return chainConfig.schemaUID;
@@ -91,28 +168,30 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
 
     try {
       // Check balance before proceeding
-      console.log("Checking balance...");
+      console.log('Checking balance...');
       if (!balance || balance.value === 0n) {
-        throw new Error("Insufficient balance to create attestation");
+        throw new Error('Insufficient balance to create attestation');
       }
-      console.log("Completed checking balance.");
+      console.log('Completed checking balance.');
 
       if (!isReady || !eas) {
-        throw new Error("EAS is not ready");
+        throw new Error('EAS is not ready');
       }
 
       // Upload file if provided
-      console.log("Uploading file...");
+      console.log('Uploading file...');
       const fileInput = (event.target as HTMLFormElement).querySelector('input[type="file"]') as HTMLInputElement;
       const { fileCid, fileType } = await handleFileUpload(fileInput);
-      console.log("Completed uploading file.");
+      console.log('Completed uploading file.');
 
       // Create and submit attestation
-      console.log("Creating attestation...");
+      console.log('Creating attestation...');
       const schemaUID = getSchemaUID();
       // Make sure the schema string is valid
-      const schemaString = easConfig.schema.rawString || 'uint256 eventTimestamp, string srs, string locationType, string location, string[] recipeType, bytes[] recipePayload, string[] mediaType, string[] mediaData, string memo';
-      
+      const schemaString =
+        easConfig.schema.rawString ||
+        'uint256 eventTimestamp, string srs, string locationType, string location, string[] recipeType, bytes[] recipePayload, string[] mediaType, string[] mediaData, string memo';
+
       const encodedData = new SchemaEncoder(schemaString).encodeData([
         { name: 'eventTimestamp', value: formValues.eventTimestamp, type: 'uint256' },
         { name: 'srs', value: 'EPSG:4326', type: 'string' },
@@ -122,7 +201,7 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
         { name: 'recipePayload', value: [ethers.toUtf8Bytes('empty')], type: 'bytes[]' },
         { name: 'mediaType', value: fileType ? [fileType] : ['text/plain'], type: 'string[]' },
         { name: 'mediaData', value: [fileCid || ''], type: 'string[]' },
-        { name: 'memo', value: formValues.data || '', type: 'string' }
+        { name: 'memo', value: formValues.data || '', type: 'string' },
       ]);
 
       const tx = await eas.attest({
@@ -135,17 +214,38 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
         },
       });
 
-      console.log("Submitted attestation");
+      console.log('Submitted attestation');
       const newAttestationUID = await tx?.wait();
-      console.log("Completed attestation submission");
-      
+      console.log('Completed attestation submission');
+
       router.push(`/attestation/uid/${newAttestationUID}`);
     } catch (err) {
       console.error('Error creating log entry:', err);
-      setError(err instanceof Error ? err.message : "Failed to create log entry");
+      setError(err instanceof Error ? err.message : 'Failed to create log entry');
     } finally {
       setIsSubmitting(false);
       setIsTxLoading(false);
+    }
+  };
+
+  // Validate selected file on change and show UI message
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileValidationError(null);
+    const f = e.target.files?.[0];
+    if (!f) return;
+
+    const state = useGlobalState.getState();
+    const activeService = state.activeService || state.availableServices.find(s => s.isAuthenticated) || state.availableServices[0];
+    const allowed = activeService?.allowedFileTypes ?? ALLOWED_FILE_TYPES;
+    const maxSize = activeService?.maxFileSize ?? DEFAULT_MAX_FILE_SIZE_BYTES;
+
+    if (f.size > maxSize) {
+      setFileValidationError(`File too large. Max ${Math.round(maxSize / 1024 / 1024)} MB`);
+      return;
+    }
+    if (f.type && !allowed.includes(f.type)) {
+      setFileValidationError('Invalid file type. Allowed types: JPEG, PNG, GIF');
+      return;
     }
   };
 
@@ -208,20 +308,17 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
           <DocumentTextIcon className="h-5 w-5 text-primary" />
           <div className="w-full">
             <span className="text-sm text-gray-500 mb-1 block">Image (optional)</span>
-            <input
-              type="file"
-              className="file-input file-input-bordered w-full"
-              accept="image/*"
-            />
+            <input ref={fileInputRef} onChange={handleFileChange} type="file" className="file-input file-input-bordered w-full" accept="image/*" />
           </div>
         </label>
 
+        {fileValidationError && <p className="text-error text-sm">{fileValidationError}</p>}
         {error && <p className="text-error text-sm">{error}</p>}
 
         {/* Submit button */}
         <button
           type="submit"
-          className={`btn ${isConnected ? "btn-primary" : "btn-disabled"}`}
+          className={`btn ${isConnected ? 'btn-primary' : 'btn-disabled'}`}
           disabled={!isConnected || isSubmitting}
         >
           {isSubmitting ? (
@@ -230,26 +327,54 @@ const CheckinForm: React.FC<CheckinFormProps> = ({ lngLat, setIsTxLoading }) => 
               Recording...
             </>
           ) : isConnected ? (
-            "Record Log Entry"
+            'Record Log Entry'
           ) : (
-            "Connect to record"
+            'Connect to record'
           )}
         </button>
       </form>
     </div>
   );
-}
+};
 
 // Handles file upload to Web3.Storage
 async function handleFileUpload(fileInput: HTMLInputElement): Promise<{ fileCid: string; fileType: string }> {
-  if (!fileInput?.files?.[0]) return { fileCid: "", fileType: "" };
+  if (!fileInput?.files?.[0]) return { fileCid: '', fileType: '' };
 
-  const formData = new FormData();
-  formData.append('file', fileInput.files[0]);
-  const response = await fetch('/api/files', { method: 'POST', body: formData });
-  if (!response.ok) throw new Error('Failed to upload file');
-  const data = await response.json();
-  return { fileCid: data.cid, fileType: fileInput.files[0].type };
+  const file = fileInput.files[0];
+
+  // Resolve active storage service from global store
+  const state = useGlobalState.getState();
+  // Prefer explicit activeService, otherwise pick the first authenticated service, otherwise first available
+  const activeService = state.activeService || state.availableServices.find(s => s.isAuthenticated) || state.availableServices[0];
+  if (!activeService) {
+    throw new Error('No storage service configured');
+  }
+
+  const uploadUrl = activeService.uploadEndpoint || `/api/storage/${activeService.id}/files`;
+  const allowed = activeService.allowedFileTypes ?? ALLOWED_FILE_TYPES;
+  const maxSize = activeService.maxFileSize ?? DEFAULT_MAX_FILE_SIZE_BYTES;
+
+  // Client-side validation
+  if (file.size > maxSize) throw new Error(`File too large. Max ${Math.round(maxSize / 1024 / 1024)} MB`);
+  if (file.type && !allowed.includes(file.type)) throw new Error('Invalid file type. Allowed types: JPEG, PNG, GIF');
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  // Include auth fields if the service requires them
+  if (activeService.requiresAuth) {
+    if (activeService.userEmail) fd.append('email', activeService.userEmail);
+    if (activeService.activeSpace?.did) fd.append('spaceDid', activeService.activeSpace.activeSpace?.did ?? activeService.activeSpace?.did);
+  }
+
+  const res = await fetch(uploadUrl, { method: 'POST', body: fd });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Upload failed');
+  }
+  const json = await res.json();
+  return { fileCid: json.cid || json.fileId || '', fileType: file.type };
 }
 
 export default CheckinForm;

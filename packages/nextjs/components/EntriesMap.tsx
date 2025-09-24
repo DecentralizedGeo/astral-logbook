@@ -1,13 +1,12 @@
-"use client";
+'use client';
 
 /**
  * Interactive map component for displaying entries
  * Displays entries interactively using Mapbox GL JS.
  */
-
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
-import "mapbox-gl/dist/mapbox-gl.css";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Initialize Mapbox with access token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
@@ -47,7 +46,7 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
       style: 'mapbox://styles/mapbox/streets-v12',
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
-      attributionControl: false
+      attributionControl: false,
     });
 
     map.current.on('load', () => {
@@ -58,16 +57,16 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
           type: 'FeatureCollection',
           features: entries.map(entry => ({
             type: 'Feature',
-            geometry: { 
-              type: 'Point', 
-              coordinates: entry.coordinates 
+            geometry: {
+              type: 'Point',
+              coordinates: entry.coordinates,
             },
-            properties: entry
-          }))
+            properties: entry,
+          })),
         },
         cluster: true,
         clusterMaxZoom: 14,
-        clusterRadius: 50
+        clusterRadius: 50,
       });
 
       // Add cluster layer
@@ -78,8 +77,8 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
         filter: ['has', 'point_count'],
         paint: {
           'circle-color': ['step', ['get', 'point_count'], '#c39bd3', 10, '#af7ac5', 30, '#9b59b6'],
-          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40]
-        }
+          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40],
+        },
       });
 
       // Add cluster count layer
@@ -91,11 +90,11 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
         layout: {
           'text-field': '{point_count_abbreviated}',
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12
+          'text-size': 12,
         },
         paint: {
-          'text-color': '#ffffff'
-        }
+          'text-color': '#ffffff',
+        },
       });
 
       // Add unclustered point layer
@@ -110,14 +109,14 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
           'circle-stroke-width': 1,
           'circle-stroke-color': '#fff',
           'circle-opacity': 0.9,
-          'circle-stroke-opacity': 0.9
-        }
+          'circle-stroke-opacity': 0.9,
+        },
       });
 
       // Add cluster click handler
-      map.current!.on('click', 'clusters', (e) => {
+      map.current!.on('click', 'clusters', e => {
         const features = map.current!.queryRenderedFeatures(e.point, {
-          layers: ['clusters']
+          layers: ['clusters'],
         });
 
         if (!features.length) return;
@@ -131,7 +130,7 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
           map.current!.easeTo({
             center: (features[0].geometry as any).coordinates,
             zoom: zoom,
-            duration: 500
+            duration: 500,
           });
         });
       });
@@ -146,7 +145,7 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
       });
 
       // Update hover handlers for unclustered points
-      map.current!.on('mouseenter', 'unclustered-point', (e) => {
+      map.current!.on('mouseenter', 'unclustered-point', e => {
         if (!e.features?.length) return;
         map.current!.getCanvas().style.cursor = 'pointer';
         if (onMarkerHover) {
@@ -188,15 +187,15 @@ const EntriesMap: React.FC<EntriesMapProps> = ({ entries, onMarkerClick, onMarke
           type: 'FeatureCollection',
           features: entries.map(entry => ({
             type: 'Feature',
-            geometry: { 
-              type: 'Point', 
-              coordinates: entry.coordinates 
+            geometry: {
+              type: 'Point',
+              coordinates: entry.coordinates,
             },
             properties: {
               ...entry,
-              coordinates: entry.coordinates
-            }
-          }))
+              coordinates: entry.coordinates,
+            },
+          })),
         });
       }
     } catch (error) {

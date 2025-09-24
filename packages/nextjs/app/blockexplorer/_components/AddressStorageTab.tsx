@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Address, createPublicClient, http, toHex } from "viem";
-import { hardhat } from "viem/chains";
+import { useEffect, useState } from 'react';
+import { Address, createPublicClient, http, toHex } from 'viem';
+import { hardhat } from 'viem/chains';
 
 const publicClient = createPublicClient({
   chain: hardhat,
@@ -24,7 +24,7 @@ export const AddressStorageTab = ({ address }: { address: Address }) => {
             slot: toHex(idx),
           });
 
-          if (storageAtPosition === "0x" + "0".repeat(64)) break;
+          if (storageAtPosition === '0x' + '0'.repeat(64)) break;
 
           if (storageAtPosition) {
             storageData.push(storageAtPosition);
@@ -34,7 +34,7 @@ export const AddressStorageTab = ({ address }: { address: Address }) => {
         }
         setStorage(storageData);
       } catch (error) {
-        console.error("Failed to fetch storage:", error);
+        console.error('Failed to fetch storage:', error);
       }
     };
 

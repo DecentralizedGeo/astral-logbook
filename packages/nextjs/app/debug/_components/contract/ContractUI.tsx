@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
 // @refresh reset
-import { useReducer } from "react";
-import { ContractReadMethods } from "./ContractReadMethods";
-import { ContractVariables } from "./ContractVariables";
-import { ContractWriteMethods } from "./ContractWriteMethods";
-import { Address, Balance } from "~~/components/scaffold-eth";
-import { useDeployedContractInfo, useNetworkColor } from "~~/hooks/scaffold-eth";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
-import { ContractName } from "~~/utils/scaffold-eth/contract";
+import { useReducer } from 'react';
+import { ContractReadMethods } from './ContractReadMethods';
+import { ContractVariables } from './ContractVariables';
+import { ContractWriteMethods } from './ContractWriteMethods';
+import { Address, Balance } from '~~/components/scaffold-eth';
+import { useDeployedContractInfo, useNetworkColor } from '~~/hooks/scaffold-eth';
+import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork';
+import { ContractName } from '~~/utils/scaffold-eth/contract';
 
 type ContractUIProps = {
   contractName: ContractName;
@@ -18,7 +18,7 @@ type ContractUIProps = {
 /**
  * UI component to interface with deployed contracts.
  **/
-export const ContractUI = ({ contractName, className = "" }: ContractUIProps) => {
+export const ContractUI = ({ contractName, className = '' }: ContractUIProps) => {
   const [refreshDisplayVariables, triggerRefreshDisplayVariables] = useReducer(value => !value, false);
   const { targetNetwork } = useTargetNetwork();
   const { data: deployedContractData, isLoading: deployedContractLoading } = useDeployedContractInfo(contractName);
@@ -57,7 +57,7 @@ export const ContractUI = ({ contractName, className = "" }: ContractUIProps) =>
             </div>
             {targetNetwork && (
               <p className="my-0 text-sm">
-                <span className="font-bold">Network</span>:{" "}
+                <span className="font-bold">Network</span>:{' '}
                 <span style={{ color: networkColor }}>{targetNetwork.name}</span>
               </p>
             )}

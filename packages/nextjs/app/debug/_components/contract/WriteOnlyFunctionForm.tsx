@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { InheritanceTooltip } from "./InheritanceTooltip";
-import { Abi, AbiFunction } from "abitype";
-import { Address, TransactionReceipt } from "viem";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useEffect, useState } from 'react';
+import { InheritanceTooltip } from './InheritanceTooltip';
+import { Abi, AbiFunction } from 'abitype';
+import { Address, TransactionReceipt } from 'viem';
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import {
   ContractInput,
   TxReceipt,
@@ -12,10 +12,10 @@ import {
   getInitialFormState,
   getParsedContractFunctionArgs,
   transformAbiFunction,
-} from "~~/app/debug/_components/contract";
-import { IntegerInput } from "~~/components/scaffold-eth";
-import { useTransactor } from "~~/hooks/scaffold-eth";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
+} from '~~/app/debug/_components/contract';
+import { IntegerInput } from '~~/components/scaffold-eth';
+import { useTransactor } from '~~/hooks/scaffold-eth';
+import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork';
 
 type WriteOnlyFunctionFormProps = {
   abi: Abi;
@@ -33,7 +33,7 @@ export const WriteOnlyFunctionForm = ({
   inheritedFrom,
 }: WriteOnlyFunctionFormProps) => {
   const [form, setForm] = useState<Record<string, any>>(() => getInitialFormState(abiFunction));
-  const [txValue, setTxValue] = useState<string | bigint>("");
+  const [txValue, setTxValue] = useState<string | bigint>('');
   const { chain } = useAccount();
   const writeTxn = useTransactor();
   const { targetNetwork } = useTargetNetwork();
@@ -55,7 +55,7 @@ export const WriteOnlyFunctionForm = ({
         await writeTxn(makeWriteWithParams);
         onChange();
       } catch (e: any) {
-        console.error("⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error", e);
+        console.error('⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error', e);
       }
     }
   };
@@ -85,17 +85,17 @@ export const WriteOnlyFunctionForm = ({
       />
     );
   });
-  const zeroInputs = inputs.length === 0 && abiFunction.stateMutability !== "payable";
+  const zeroInputs = inputs.length === 0 && abiFunction.stateMutability !== 'payable';
 
   return (
     <div className="py-5 space-y-3 first:pt-0 last:pb-1">
-      <div className={`flex gap-3 ${zeroInputs ? "flex-row justify-between items-center" : "flex-col"}`}>
+      <div className={`flex gap-3 ${zeroInputs ? 'flex-row justify-between items-center' : 'flex-col'}`}>
         <p className="font-medium my-0 break-words">
           {abiFunction.name}
           <InheritanceTooltip inheritedFrom={inheritedFrom} />
         </p>
         {inputs}
-        {abiFunction.stateMutability === "payable" ? (
+        {abiFunction.stateMutability === 'payable' ? (
           <div className="flex flex-col gap-1.5 w-full">
             <div className="flex items-center ml-2">
               <span className="text-xs font-medium mr-2 leading-none">payable value</span>
@@ -120,9 +120,9 @@ export const WriteOnlyFunctionForm = ({
           <div
             className={`flex ${
               writeDisabled &&
-              "tooltip before:content-[attr(data-tip)] before:right-[-10px] before:left-auto before:transform-none"
+              'tooltip before:content-[attr(data-tip)] before:right-[-10px] before:left-auto before:transform-none'
             }`}
-            data-tip={`${writeDisabled && "Wallet not connected or in the wrong network"}`}
+            data-tip={`${writeDisabled && 'Wallet not connected or in the wrong network'}`}
           >
             <button className="btn btn-secondary btn-sm" disabled={writeDisabled || isPending} onClick={handleWrite}>
               {isPending && <span className="loading loading-spinner loading-xs"></span>}

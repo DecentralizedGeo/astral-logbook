@@ -4,39 +4,116 @@
  * timestamps, memos, and associated media on IPFS.
  * Route: /attestation/[uid]
  */
+'use client';
 
-"use client";
+import React, { useContext, useEffect, useState } from 'react';
+import { Suspense } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+import type { NextPage } from 'next';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
+import { ArrowUpRightIcon, ClockIcon, DocumentTextIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import easConfig from '~~/EAS.config';
+import { EASContext } from '~~/components/EasContextProvider';
+import Mapbox from '~~/components/Mapbox';
+import Spinner from '~~/components/Spinner';
+import { useTargetNetwork } from '~~/hooks/scaffold-eth/useTargetNetwork';
+import { LocationAttestation } from '~~/types/attestations';
+import hexToDate from '~~/utils/hexToDate';
+import parseLocation from '~~/utils/parseLocation';
 
-import React, { useContext, useEffect, useState } from "react";
-import { Suspense } from "react";
-import type { NextPage } from "next";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { ErrorBoundary, FallbackProps } from "react-error-boundary";
-import { ArrowUpRightIcon, ClockIcon, DocumentTextIcon, MapPinIcon } from "@heroicons/react/24/outline";
-import { EASContext } from "~~/components/EasContextProvider";
-import Mapbox from "~~/components/Mapbox";
-import Spinner from "~~/components/Spinner";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
-import { LocationAttestation } from "~~/types/attestations";
-import easConfig from "~~/EAS.config";
-import hexToDate from "~~/utils/hexToDate";
-import parseLocation from "~~/utils/parseLocation";
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
+
+/**
+ * Page component for displaying detailed attestation information
+ * Handles fetching, decoding, and displaying attestation data including location,
+ * timestamps, memos, and associated media on IPFS.
+ * Route: /attestation/[uid]
+ */
 
 // Formats a CID into a valid IPFS gateway URL
-const formatIpfsUrl = (cid: string) => `https://${cid}.ipfs.dweb.link`;
+const formatIpfsUrl = (cid: string) => `https://${cid}.ipfs.w3s.link`;
+
+// Short display for long IPFS CIDs (shows start and end so it doesn't stretch layout)
+const shortIpfsDisplay = (cid: string) => {
+  if (!cid) return '';
+  const start = cid.slice(0, 8);
+  const end = cid.slice(-6);
+  return `https://${start}...${end}.ipfs.w3s.link/`;
+};
 
 const AttestationPage: NextPage = () => {
   const params = useParams();
   const { eas } = useContext(EASContext);
   const { targetNetwork } = useTargetNetwork();
-  const [attestationUid, setAttestationUid] = useState("");
+  const [attestationUid, setAttestationUid] = useState('');
   const [attestationData, setAttestationData] = useState<LocationAttestation | null>(null);
 
   // Extract attestation UID from URL parameters
   useEffect(() => {
-    if (!(params.slug?.length > 0) && params.slug[0] != "uid") return;
+    if (!(params.slug?.length > 0) && params.slug[0] != 'uid') return;
     setAttestationUid(params.slug[1]);
   }, [params.slug]);
 
@@ -47,20 +124,20 @@ const AttestationPage: NextPage = () => {
     const fetchAttestation = async () => {
       try {
         if (!attestationUid) return;
-        
+
         // Check if EAS is properly initialized with a provider
         if (!eas.contract?.runner) {
-          console.error("EAS contract runner not properly initialized");
+          console.error('EAS contract runner not properly initialized');
           return;
         }
-        
+
         // Fetch raw attestation data
         const attestation = await eas.getAttestation(attestationUid);
         if (!attestation) {
-          console.error("Attestation not found");
+          console.error('Attestation not found');
           return;
         }
-        
+
         const {
           uid: attestationId,
           schema: schemaUID,
@@ -71,9 +148,9 @@ const AttestationPage: NextPage = () => {
           recipient,
           attester,
         } = attestation;
-        
-        const completed = true; 
-        const initData = "0x"; 
+
+        const completed = true;
+        const initData = '0x';
 
         // Decode attestation data using schema
         const decodedData = new SchemaEncoder(easConfig.schema.rawString)
@@ -97,7 +174,7 @@ const AttestationPage: NextPage = () => {
           attestationId,
         } as LocationAttestation);
       } catch (error) {
-        console.error("Error fetching attestation:", error);
+        console.error('Error fetching attestation:', error);
       }
     };
 
@@ -112,10 +189,9 @@ const AttestationPage: NextPage = () => {
     <ErrorBoundary
       fallbackRender={({ error }: FallbackProps) => (
         <div className="text-red-500 text-2xl font-black flex justify-center items-center">
-          {error.message.includes("403") 
-            ? "Access denied. Please check your permissions."
-            : "Error loading attestation data. Please try again later"
-          }
+          {error.message.includes('403')
+            ? 'Access denied. Please check your permissions.'
+            : 'Error loading attestation data. Please try again later'}
         </div>
       )}
     >
@@ -142,20 +218,18 @@ const AttestationPage: NextPage = () => {
                     <td>
                       <MapPinIcon className="h-5 w-5 text-primary flex-shrink-0" />
                     </td>
-                    <td className="flex flex-col sm:flex-row">
+                    <td className="flex flex-col sm:flex-row min-w-0">
                       <div className="sm:mr-4">
                         <strong className="text-sm">Lon: </strong>
-                        {attestationData 
+                        {attestationData
                           ? parseLocation(attestationData.location.value.value as string)[0]
-                          : "fetching"
-                        }
+                          : 'fetching'}
                       </div>
                       <div>
                         <strong className="text-sm">Lat: </strong>
-                        {attestationData 
+                        {attestationData
                           ? parseLocation(attestationData.location.value.value as string)[1]
-                          : "fetching"
-                        }
+                          : 'fetching'}
                       </div>
                     </td>
                   </tr>
@@ -165,11 +239,10 @@ const AttestationPage: NextPage = () => {
                     <td>
                       <ClockIcon className="h-5 w-5 text-primary" />
                     </td>
-                    <td>
+                    <td className="min-w-0">
                       {attestationData
                         ? hexToDate((attestationData.eventTimestamp.value.value as unknown as bigint).toString(16))
-                        : "fetching"
-                      }
+                        : 'fetching'}
                     </td>
                   </tr>
 
@@ -179,8 +252,10 @@ const AttestationPage: NextPage = () => {
                       <td>
                         <DocumentTextIcon className="h-5 w-5 text-primary" />
                       </td>
-                      <td>
-                        {attestationData.memo.value.value}
+                      <td className="min-w-0">
+                        {typeof attestationData.memo.value.value === 'string'
+                          ? attestationData.memo.value.value
+                          : JSON.stringify(attestationData.memo.value.value)}
                       </td>
                     </tr>
                   )}
@@ -190,7 +265,7 @@ const AttestationPage: NextPage = () => {
                     <td className="text-sm">
                       <strong>From:</strong>
                     </td>
-                    <td>{attestationData?.attester || "fetching"}</td>
+                    <td className="min-w-0">{attestationData?.attester || 'fetching'}</td>
                   </tr>
 
                   {/* Media */}
@@ -199,7 +274,19 @@ const AttestationPage: NextPage = () => {
                       <td className="text-sm">
                         <strong>Media:</strong>
                       </td>
-                      <td>{formatIpfsUrl(mediaData[0])}</td>
+                      <td className="min-w-0">
+                        <a
+                          href={formatIpfsUrl(mediaData[0])}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline break-words"
+                          title={formatIpfsUrl(mediaData[0])}
+                        >
+                          {/* Use the function below if the the URL needs to be shortened for display purposes  */}
+                          {/* {shortIpfsDisplay(mediaData[0])}  */}
+                          {formatIpfsUrl(mediaData[0])}
+                        </a>
+                      </td>
                     </tr>
                   )}
 
@@ -207,9 +294,7 @@ const AttestationPage: NextPage = () => {
                   <tr className="sm:flex-row justify-between w-full">
                     <td className="sm:w-1/2 p-2">
                       <Link target="_blank" href="/register">
-                        <div className="btn btn-outline btn-primary w-full">
-                          New log
-                        </div>
+                        <div className="btn btn-outline btn-primary w-full">New log</div>
                       </Link>
                     </td>
                     <td className="sm:w-1/2 p-2">

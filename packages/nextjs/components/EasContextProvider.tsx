@@ -2,13 +2,12 @@
  * EAS (Ethereum Attestation Service) context provider
  * Manages the EAS instance and its connection state for the application
  */
-
-import { EAS } from "@ethereum-attestation-service/eas-sdk";
-import { createContext, useEffect, useState } from "react";
-import { Config, UseChainIdParameters, useChainId } from "wagmi";
-import easConfig from "~~/EAS.config";
-import { wagmiConfig } from "~~/services/web3/wagmiConfig";
-import { useEthersSigner } from "~~/utils/useEthersSigner";
+import { createContext, useEffect, useState } from 'react';
+import { EAS } from '@ethereum-attestation-service/eas-sdk';
+import { Config, UseChainIdParameters, useChainId } from 'wagmi';
+import easConfig from '~~/EAS.config';
+import { wagmiConfig } from '~~/services/web3/wagmiConfig';
+import { useEthersSigner } from '~~/utils/useEthersSigner';
 
 // Type definition for EAS context value
 interface EASContextValue {
@@ -19,7 +18,7 @@ interface EASContextValue {
 // Create context with default values
 const EASContext = createContext<EASContextValue>({
   eas: null,
-  isReady: false
+  isReady: false,
 });
 
 // Makes EAS instance available to child components
@@ -36,7 +35,7 @@ const EASProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       // Get contract address for current chain
       const contractAddress = easConfig.chains[String(chainId) as keyof typeof easConfig.chains]?.easContractAddress;
-      
+
       if (!contractAddress) {
         console.error('No EAS contract address for chain:', chainId);
         return;
@@ -56,11 +55,7 @@ const EASProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [chainId, signer]);
 
-  return (
-    <EASContext.Provider value={{ eas, isReady }}>
-      {children}
-    </EASContext.Provider>
-  );
+  return <EASContext.Provider value={{ eas, isReady }}>{children}</EASContext.Provider>;
 };
 
 export { EASContext, EASProvider };
